@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+@theme {
+  /* Role tokens. Values are swapped per theme below; utilities read the vars. */
+  --color-base: #101214;
+  --color-base-deep: #0a0c0d;
+  --color-base-soft: #1a1d20;
+  --color-line: #2a2e33;
+  --color-ink: #f6f4ee;
+  --color-mist: #878d96;
+  --color-accent: #f6c35c;
+  --color-solar: #f0a81b;
+  --color-solar-hover: #f6c35c;
+  --color-on-solar: #101214;
+  --color-leaf: #2e7d5b;
+  --color-night: #16222e;
+  --color-danger: #f87171;
+
+  --font-sans: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
+
+  --animate-flow: flow 3s linear infinite;
+}
+
+/* Dark is declared explicitly too, so a subtree (hero, top navbar) can force it
+   while the page is in light mode. */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-base: #101214;
+  --color-base-deep: #0a0c0d;
+  --color-base-soft: #1a1d20;
+  --color-line: #2a2e33;
+  --color-ink: #f6f4ee;
+  --color-mist: #878d96;
+  --color-accent: #f6c35c;
+  --color-solar: #f0a81b;
+  --color-night: #16222e;
+  --color-danger: #f87171;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-base: #f3f4f1;
+  --color-base-deep: #e8e9e4;
+  --color-base-soft: #ffffff;
+  --color-line: #d5d7d0;
+  --color-ink: #15181b;
+  --color-mist: #585f67;
+  --color-accent: #9a5b00;
+  --color-solar: #e39a0c;
+  --color-night: #e4e9ec;
+  --color-danger: #c62828;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Page scrollbar hidden; wheel, touch and keyboard scrolling still work. */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme] {
+  color: var(--color-ink);
+}
+
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: var(--font-arabic), var(--font-archivo), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--color-solar);
+  color: var(--color-on-solar);
+}
+
+/* Display type: Archivo's width axis is the brand voice — wide, engineered. */
+.display {
+  font-variation-settings: "wdth" 125;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+[dir="rtl"] .display {
+  font-variation-settings: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.display-sub {
+  font-variation-settings: "wdth" 110;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+[dir="rtl"] .display-sub {
+  font-variation-settings: normal;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Fine engineering grid lines used as section texture */
+.grid-lines {
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-line) 45%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-line) 45%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+}
+
+.glass {
+  background: color-mix(in srgb, var(--color-base) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Energy dash flow along SVG strokes */
+@keyframes flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-12px);
+  }
+}
+
+/* Hidden-scrollbar horizontal swipers */
+.snap-row {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+}
+.snap-row::-webkit-scrollbar {
+  display: none;
+}
+.snap-row > * {
+  scroll-snap-align: start;
+}
+
+/* Custom cursor dot (desktop pointer devices only) */
+@media (pointer: fine) {
+  .cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-solar);
+    pointer-events: none;
+    z-index: 200;
+    mix-blend-mode: difference;
+    transition: width 0.25s ease, height 0.25s ease, opacity 0.25s ease;
+    transform: translate(-50%, -50%);
+    will-change: left, top;
+  }
+  .cursor-dot.is-active {
+    width: 40px;
+    height: 40px;
+    opacity: 0.9;
+  }
+}
+@media (pointer: coarse) {
+  .cursor-dot {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .cursor-dot {
+    display: none;
+  }
+}
