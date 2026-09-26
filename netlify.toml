@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+
+[build.environment]
+  # NEXT_PUBLIC_SITE_URL is the public domain: it is meant to appear in the
+  # build output (canonical URLs, sitemap, Open Graph), so it is not a secret.
+  # GOOGLE_SHEETS_WEBHOOK_URL stays scanned and must only live in Netlify's
+  # environment variables (never in the repo).
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SITE_URL"
