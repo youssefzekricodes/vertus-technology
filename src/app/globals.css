@@ -1,19 +1,22 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 @theme {
-  /* Role tokens. Values are swapped per theme below; utilities read the vars. */
-  --color-base: #101214;
-  --color-base-deep: #0a0c0d;
-  --color-base-soft: #1a1d20;
-  --color-line: #2a2e33;
-  --color-ink: #f6f4ee;
-  --color-mist: #878d96;
-  --color-accent: #f6c35c;
-  --color-solar: #f0a81b;
-  --color-solar-hover: #f6c35c;
-  --color-on-solar: #101214;
-  --color-leaf: #2e7d5b;
-  --color-night: #16222e;
+  /* Role tokens (deep blue primary, technical blue secondary, energy green
+     accent). Values are swapped per theme below; utilities read the vars. */
+  --color-base: #07121f;
+  --color-base-deep: #040b15;
+  --color-base-soft: #0e1c2e;
+  --color-line: #1f3048;
+  --color-ink: #eef3f8;
+  --color-mist: #8d9bb0;
+  --color-accent: #3fd68f;
+  --color-energy: #22c47a;
+  --color-energy-hover: #3fd68f;
+  --color-on-energy: #04140b;
+  --color-tech: #3b8ce6;
+  --color-leaf: #22c47a;
+  --color-night: #0c2240;
   --color-danger: #f87171;
 
   --font-sans: var(--font-archivo), var(--font-arabic), system-ui, sans-serif;
@@ -26,30 +29,83 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-base: #101214;
-  --color-base-deep: #0a0c0d;
-  --color-base-soft: #1a1d20;
-  --color-line: #2a2e33;
-  --color-ink: #f6f4ee;
-  --color-mist: #878d96;
-  --color-accent: #f6c35c;
-  --color-solar: #f0a81b;
-  --color-night: #16222e;
+  --color-base: #07121f;
+  --color-base-deep: #040b15;
+  --color-base-soft: #0e1c2e;
+  --color-line: #1f3048;
+  --color-ink: #eef3f8;
+  --color-mist: #8d9bb0;
+  --color-accent: #3fd68f;
+  --color-energy: #22c47a;
+  --color-tech: #3b8ce6;
+  --color-night: #0c2240;
   --color-danger: #f87171;
+
+  /* HeroUI semantic tokens, mapped onto the site palette. */
+  --background: #07121f;
+  --foreground: #eef3f8;
+  --surface: #0e1c2e;
+  --overlay: #0f1f33;
+  --overlay-foreground: #eef3f8;
+  --muted: #8d9bb0;
+  --default: #16263b;
+  --default-foreground: #eef3f8;
+  --accent: #3fd68f;
+  --accent-foreground: #04140b;
+  --success: #22c47a;
+  --danger: #f87171;
+  --danger-foreground: #1a0606;
+  --border: #1f3048;
+  --separator: #1f3048;
+  --focus: #3fd68f;
+  --link: #3fd68f;
+  --field-background: #0b1828;
+  --field-foreground: #eef3f8;
+  --field-placeholder: #5f6f86;
+  --field-border: #1f3048;
+  --field-radius: 0.875rem;
+  --field-border-width: 1px;
+  --overlay-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px #1f3048;
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --color-base: #f3f4f1;
-  --color-base-deep: #e8e9e4;
+  --color-base: #f3f6fa;
+  --color-base-deep: #e4ebf3;
   --color-base-soft: #ffffff;
-  --color-line: #d5d7d0;
-  --color-ink: #15181b;
-  --color-mist: #585f67;
-  --color-accent: #9a5b00;
-  --color-solar: #e39a0c;
-  --color-night: #e4e9ec;
+  --color-line: #d0dae6;
+  --color-ink: #0a1a2e;
+  --color-mist: #4c5c70;
+  --color-accent: #0b7a48;
+  --color-energy: #17a865;
+  --color-tech: #1b5fb4;
+  --color-night: #e1e9f4;
   --color-danger: #c62828;
+
+  --background: #f3f6fa;
+  --foreground: #0a1a2e;
+  --surface: #ffffff;
+  --overlay: #ffffff;
+  --overlay-foreground: #0a1a2e;
+  --muted: #4c5c70;
+  --default: #e4ebf3;
+  --default-foreground: #0a1a2e;
+  --accent: #0b7a48;
+  --accent-foreground: #ffffff;
+  --success: #17a865;
+  --danger: #c62828;
+  --danger-foreground: #ffffff;
+  --border: #d0dae6;
+  --separator: #d0dae6;
+  --focus: #0b7a48;
+  --link: #0b7a48;
+  --field-background: #ffffff;
+  --field-foreground: #0a1a2e;
+  --field-placeholder: #8a98aa;
+  --field-border: #d0dae6;
+  --field-radius: 0.875rem;
+  --field-border-width: 1px;
+  --overlay-shadow: 0 18px 40px rgba(10, 26, 46, 0.12), 0 0 0 1px #d0dae6;
 }
 
 html {
@@ -80,8 +136,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-solar);
-  color: var(--color-on-solar);
+  background: var(--color-energy);
+  color: var(--color-on-energy);
 }
 
 /* Display type: Archivo's width axis is the brand voice — wide, engineered. */
@@ -178,7 +234,7 @@ body {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--color-solar);
+    background: var(--color-energy);
     pointer-events: none;
     z-index: 200;
     mix-blend-mode: difference;
@@ -212,4 +268,75 @@ body {
   .cursor-dot {
     display: none;
   }
+}
+
+/* HeroUI form fields: roomier, site-branded */
+@layer components {
+  .input,
+  .select__trigger {
+    min-height: 3rem;
+    padding-inline: 1rem;
+  }
+  .textarea {
+    padding: 0.875rem 1rem;
+  }
+  .label {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/*
+ * One calm focus state for every field: accent border + soft halo.
+ * Replaces HeroUI's 2px ring and the global :focus-visible outline, which
+ * stacked into a double outline. Unlayered so it wins over @heroui/styles.
+ */
+.input,
+.textarea,
+.select__trigger {
+  border-color: var(--field-border);
+  box-shadow: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+.input:hover:not(:focus),
+.textarea:hover:not(:focus),
+.select__trigger:hover {
+  border-color: color-mix(in srgb, var(--field-border) 55%, var(--foreground) 45%);
+  background-color: var(--field-background);
+}
+.input:focus,
+.input:focus-visible,
+.input[data-focused="true"],
+.textarea:focus,
+.textarea:focus-visible,
+.textarea[data-focused="true"],
+.select__trigger:focus,
+.select__trigger:focus-visible,
+.select__trigger[data-focus-visible="true"],
+.select[data-open="true"] .select__trigger {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--field-background);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.input[data-invalid="true"],
+.textarea[data-invalid="true"],
+.select[data-invalid="true"] .select__trigger {
+  border-color: var(--danger);
+  box-shadow: none;
+}
+.input[data-invalid="true"]:focus,
+.input[data-invalid="true"][data-focused="true"],
+.textarea[data-invalid="true"]:focus,
+.textarea[data-invalid="true"][data-focused="true"],
+.select[data-invalid="true"] .select__trigger:focus-visible {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 14%, transparent);
+}
+/* Keyboard focus on segmented switches: same soft halo, no hard outline. */
+.toggle-button:focus-visible,
+.toggle-button[data-focus-visible="true"] {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
 }

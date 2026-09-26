@@ -7,13 +7,16 @@
 export type Icon3DName =
   | "panel" | "study" | "industry" | "home" | "monitor" | "bolt"
   | "sun" | "inverter" | "smart" | "battery"
-  | "gear" | "shield" | "bulb" | "bubble";
+  | "gear" | "shield" | "bulb" | "bubble"
+  | "pump" | "charger" | "profile";
 
 type V3 = [number, number, number];
 type Mat = { top: string; left: string; right: string };
 
 const MAT = {
-  gold: { top: "#ffd27a", left: "#f0a81b", right: "#c27c0e" },
+  gold: { top: "#7cebb5", left: "#22c47a", right: "#15894f" },
+  sun: { top: "#ffd27a", left: "#f0a81b", right: "#c27c0e" },
+  blue: { top: "#7fb6f2", left: "#3b8ce6", right: "#1f5fa8" },
   slate: { top: "#4a5f7a", left: "#2c3c52", right: "#1c2838" },
   steel: { top: "#f7f8f5", left: "#d3d7cf", right: "#aab0a6" },
   leaf: { top: "#7ddba4", left: "#34a86b", right: "#237a4c" },
@@ -294,7 +297,7 @@ const ICONS: Record<Icon3DName, React.ReactNode> = {
       return { x, z, depth: x + z };
     });
     const ray = (r: (typeof rays)[number], i: number) => (
-      <Box key={i} at={[r.x - 0.09, -0.09, r.z - 0.09]} size={[0.18, 0.18, 0.18]} m="gold" />
+      <Box key={i} at={[r.x - 0.09, -0.09, r.z - 0.09]} size={[0.18, 0.18, 0.18]} m="sun" />
     );
     return (
       <>
@@ -394,6 +397,55 @@ const ICONS: Record<Icon3DName, React.ReactNode> = {
     </>
   ),
 
+  pump: (
+    <>
+      <Box at={[-1.1, -1.1, 0]} size={[2.2, 2.2, 0.12]} m="steel" />
+      <Cylinder at={[-0.4, -0.2, 0.12]} r={0.38} h={0.8} m="blue" />
+      <Cylinder at={[-0.4, -0.2, 0.92]} r={0.26} h={0.3} m="steel" />
+      <Cylinder at={[-0.4, -0.2, 1.22]} r={0.1} h={0.35} m="steel" />
+      <Box at={[-0.45, -0.3, 1.47]} size={[1.25, 0.2, 0.2]} m="steel" />
+      <Box at={[0.7, -0.3, 1.02]} size={[0.2, 0.2, 0.65]} m="steel" />
+      <Box at={[0.72, -0.28, 0.72]} size={[0.16, 0.16, 0.16]} m="blue" />
+      <Box at={[0.75, -0.25, 0.42]} size={[0.1, 0.1, 0.1]} m="blue" />
+      <Cylinder at={[0.8, 0.55, 0.12]} r={0.32} h={0.08} m="blue" />
+    </>
+  ),
+
+  charger: (
+    <>
+      <Box at={[-0.7, -0.5, 0]} size={[1.4, 1.0, 0.1]} m="steel" />
+      <Box at={[-0.4, -0.3, 0.1]} size={[0.8, 0.5, 1.75]} m="steel" />
+      <Face fill={MAT.slate.left} v={[[-0.28, 0.201, 1.1], [0.28, 0.201, 1.1], [0.28, 0.201, 1.6], [-0.28, 0.201, 1.6]]} />
+      <Line stroke={MAT.gold.top} width={1.4} v={[[-0.08, 0.202, 1.5], [-0.16, 0.202, 1.33], [0.04, 0.202, 1.33], [-0.04, 0.202, 1.18]]} />
+      <circle cx={p([0.2, 0.202, 0.95])[0]} cy={p([0.2, 0.202, 0.95])[1]} r={1.5} fill={MAT.gold.top} />
+      <Line
+        stroke={MAT.slate.left}
+        width={1.8}
+        v={[[0.4, 0.0, 0.9], [0.75, 0.2, 0.7], [0.9, 0.5, 0.35], [0.85, 0.75, 0.14]]}
+      />
+      <Box at={[0.72, 0.68, 0.1]} size={[0.26, 0.2, 0.16]} m="gold" />
+    </>
+  ),
+
+  profile: (
+    <>
+      <Extrude
+        outline={[[-0.55, 0], [0.55, 0], [0.55, 0.26], [-0.3, 0.26], [-0.3, 1.34], [0.55, 1.34], [0.55, 1.6], [-0.55, 1.6]]}
+        at={[-0.35, 0.05]}
+        front={0.75}
+        depth={1.6}
+        m="steel"
+      />
+      <Extrude
+        outline={[[-0.3, 0], [0.3, 0], [0.3, 0.8], [0.18, 0.8], [0.18, 0.12], [-0.18, 0.12], [-0.18, 0.8], [-0.3, 0.8]]}
+        at={[0.85, 0.05]}
+        front={0.9}
+        depth={1.2}
+        m="gold"
+      />
+    </>
+  ),
+
   bubble: (
     <>
       <Extrude outline={roundedBubble(1.5, 0.95, 0.22)} at={[0.35, 0.95]} front={-0.25} depth={0.25} m="steel" />
@@ -413,6 +465,7 @@ const SCALE: Partial<Record<Icon3DName, number>> = {
   gear: 1.3,
   shield: 1.3,
   bulb: 1.2,
+  charger: 1.1,
   bubble: 1.2,
   battery: 1.15,
   inverter: 1.1,

@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import type { Dict } from "@/content/site";
+import type { Locale, Page } from "@/content/types";
+import type { Ui } from "@/content/ui";
+import { path } from "@/lib/routes";
+import { whatsappHref } from "@/content/company";
 import { Button } from "./Button";
 
 const Hero3D = dynamic(() => import("./Hero3D"), { ssr: false });
@@ -17,7 +20,7 @@ function webglAvailable(): boolean {
   }
 }
 
-export function Hero({ t }: { t: Dict }) {
+export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale: Locale }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const [mode, setMode] = useState<"pending" | "high" | "low" | "static">("pending");
@@ -101,15 +104,15 @@ export function Hero({ t }: { t: Dict }) {
           className="text-accent tracking-[0.3em] text-xs md:text-sm mb-6"
           dir="ltr"
         >
-          VERTUS TECHNOLOGY
+          {hero.eyebrow}
         </motion.p>
         <motion.h1
           initial={reduced ? false : { opacity: 0, y: 26 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="display text-5xl md:text-7xl lg:text-8xl max-w-5xl"
+          className="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl max-w-5xl"
         >
-          {t.hero.tagline}
+          {hero.h1}
         </motion.h1>
         <motion.p
           initial={reduced ? false : { opacity: 0, y: 18 }}
@@ -117,7 +120,7 @@ export function Hero({ t }: { t: Dict }) {
           transition={{ duration: 0.8, delay: 0.55 }}
           className="mt-7 max-w-xl text-mist text-base md:text-lg leading-relaxed"
         >
-          {t.hero.sub}
+          {hero.lead}
         </motion.p>
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 14 }}
@@ -125,26 +128,38 @@ export function Hero({ t }: { t: Dict }) {
           transition={{ duration: 0.7, delay: 0.75 }}
           className="mt-10 flex flex-wrap items-center justify-center gap-4"
         >
-          <Button href="#solutions">{t.hero.ctaPrimary}</Button>
-          <Button href="#contact" variant="ghost">
-            {t.hero.ctaSecondary}
+          <Button href={path(locale, "study")} track="cta_study_click">
+            {ui.cta.study}
+          </Button>
+          <Button href={whatsappHref(ui.contact.whatsappText)} variant="ghost" external track="whatsapp_click">
+            {ui.cta.expert}
           </Button>
         </motion.div>
+        {hero.message && (
+          <motion.p
+            initial={reduced ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.95 }}
+            className="mt-8 text-sm md:text-base text-ink/75 tracking-wide"
+          >
+            {hero.message}
+          </motion.p>
+        )}
       </motion.div>
 
       {/* scroll hint */}
       <motion.a
-        href="#societe"
+        href="#presentation"
         className="absolute bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-mist text-xs tracking-widest hover:text-accent transition-colors"
         initial={reduced ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4, duration: 1 }}
         style={reduced ? undefined : { opacity: contentOpacity }}
       >
-        {t.hero.scrollHint}
+        {ui.cta.more}
         <svg width="14" height="22" viewBox="0 0 14 22" fill="none" aria-hidden="true">
           <rect x="1" y="1" width="12" height="20" rx="6" stroke="currentColor" />
-          <circle cx="7" cy="7" r="2" fill="var(--color-solar)">
+          <circle cx="7" cy="7" r="2" fill="var(--color-energy)">
             <animate attributeName="cy" values="7;13;7" dur="1.8s" repeatCount="indefinite" />
           </circle>
         </svg>

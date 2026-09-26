@@ -1,14 +1,8 @@
-import { Home } from "@/components/Home";
-import { jsonLd } from "@/lib/seo";
+import { HomePage } from "@/components/site/SitePage";
+import { metadataFor } from "@/lib/seo";
+
+export const metadata = metadataFor("fr", "home");
 
 export default function Page() {
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd("fr")) }}
-      />
-      <Home locale="fr" />
-    </>
-  );
+  return <HomePage locale="fr" />;
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { Dict } from "@/content/site";
+import type { Ui } from "@/content/ui";
 import { Icon3D, type Icon3DName } from "./Icon3D";
 import { SectionHeader } from "./SectionHeader";
 
@@ -29,7 +29,7 @@ function Link({ vertical = false }: { vertical?: boolean }) {
         y1={vertical ? 0 : 12}
         x2={vertical ? 12 : 100}
         y2={vertical ? 40 : 12}
-        stroke="var(--color-solar)"
+        stroke="var(--color-energy)"
         strokeOpacity="0.5"
         strokeWidth="1.5"
         strokeDasharray="4 8"
@@ -39,16 +39,16 @@ function Link({ vertical = false }: { vertical?: boolean }) {
   );
 }
 
-export function EnergyFlow({ t }: { t: Dict }) {
+export function EnergyFlow({ flow }: { flow: Ui["flow"] }) {
   const [active, setActive] = useState(0);
   const reduced = useReducedMotion();
-  const steps = t.flow.steps;
+  const steps = flow.steps;
 
   return (
     <section className="py-24 md:py-36 border-y border-line/50 bg-night/30 relative overflow-hidden">
       <div className="absolute inset-0 grid-lines opacity-40" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
-        <SectionHeader title={t.flow.title} sub={t.flow.sub} />
+        <SectionHeader title={flow.title} sub={flow.sub} />
 
         {/* desktop: horizontal chain · mobile: vertical chain */}
         <div className="flex flex-col md:flex-row md:items-center gap-0 md:gap-2">
@@ -67,8 +67,8 @@ export function EnergyFlow({ t }: { t: Dict }) {
                 aria-pressed={active === i}
                 className={`group flex md:flex-col items-center gap-4 md:gap-3 rounded-2xl border px-5 py-4 md:px-6 md:py-5 transition-colors duration-300 data-cursor ${
                   active === i
-                    ? "border-solar/70 bg-base-soft text-accent"
-                    : "border-line/60 bg-base-soft/40 text-ink/80 hover:border-solar/40"
+                    ? "border-energy/70 bg-base-soft text-accent"
+                    : "border-line/60 bg-base-soft/40 text-ink/80 hover:border-energy/40"
                 }`}
               >
                 <Icon3D
@@ -92,7 +92,7 @@ export function EnergyFlow({ t }: { t: Dict }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="max-w-2xl text-mist leading-relaxed border-s-2 border-solar/60 ps-5"
+              className="max-w-2xl text-mist leading-relaxed border-s-2 border-energy/60 ps-5"
             >
               <span className="block text-ink font-semibold mb-1.5">
                 {steps[active].title}

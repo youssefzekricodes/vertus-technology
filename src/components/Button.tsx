@@ -1,26 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
+import { track as trackEvent } from "@/lib/analytics";
 
 type Props = {
   href?: string;
   onClick?: () => void;
   children: React.ReactNode;
-  variant?: "solar" | "ghost";
+  variant?: "energy" | "ghost";
   type?: "button" | "submit";
   disabled?: boolean;
   className?: string;
+  /** Opens in a new tab (WhatsApp, maps…). */
+  external?: boolean;
+  /** Analytics event sent on click. */
+  track?: string;
 };
 
-/** Primary action. Solar = filled gold; ghost = outlined. Subtle magnetic pull on pointer devices. */
+/** Primary action. Energy = filled green; ghost = outlined. Subtle magnetic pull on pointer devices. */
 export function Button({
   href,
   onClick,
   children,
-  variant = "solar",
+  variant = "energy",
   type = "button",
   disabled,
   className = "",
+  external,
+  track,
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
 
@@ -36,36 +44,51 @@ export function Button({
   const onLeave = () => {
     if (ref.current) ref.current.style.transform = "";
   };
+  const handleClick = () => {
+    if (track) trackEvent(track, { href });
+    onClick?.();
+  };
 
   const cls = [
     "inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold",
     "transition-[background,color,border-color,box-shadow] duration-300 will-change-transform",
-    "data-cursor",
-    variant === "solar"
-      ? "bg-solar text-on-solar hover:bg-solar-hover shadow-[0_0_0_0_rgba(240,168,27,0)] hover:shadow-[0_8px_36px_-8px_rgba(240,168,27,0.45)]"
-      : "border border-line bg-base/50 backdrop-blur-md text-ink hover:border-solar hover:text-accent",
+    variant === "energy"
+      ? "bg-energy text-on-energy hover:bg-energy-hover shadow-[0_0_0_0_rgba(34,196,122,0)] hover:shadow-[0_8px_36px_-8px_rgba(34,196,122,0.45)]"
+      : "border border-line bg-base/50 backdrop-blur-md text-ink hover:border-energy hover:text-accent",
     disabled ? "opacity-60 pointer-events-none" : "",
     className,
   ].join(" ");
 
   if (href) {
+    const common = {
+      className: cls,
+      onPointerMove: onMove,
+      onPointerLeave: onLeave,
+      onClick: handleClick,
+    };
+    if (external || /^(https?:|tel:|mailto:)/.test(href)) {
+      return (
+        <a
+          ref={ref as React.RefObject<HTMLAnchorElement>}
+          href={href}
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          {...common}
+        >
+          {children}
+        </a>
+      );
+    }
     return (
-      <a
-        ref={ref as React.RefObject<HTMLAnchorElement>}
-        href={href}
-        className={cls}
-        onPointerMove={onMove}
-        onPointerLeave={onLeave}
-      >
+      <Link ref={ref as React.RefObject<HTMLAnchorElement>} href={href} {...common}>
         {children}
-      </a>
+      </Link>
     );
   }
   return (
     <button
       ref={ref as React.RefObject<HTMLButtonElement>}
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className={cls}
       onPointerMove={onMove}

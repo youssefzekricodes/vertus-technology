@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Dict } from "@/content/site";
+import type { Ui } from "@/content/ui";
 import { THEME_KEY, type Theme } from "@/lib/theme";
 
 function subscribe(onChange: () => void) {
@@ -29,7 +29,7 @@ const getTheme = (): Theme =>
 // Unknown on the server: the pre-paint script decides on the client.
 const getServerTheme = (): Theme | null => null;
 
-export function ThemeToggle({ t }: { t: Dict }) {
+export function ThemeToggle({ ui }: { ui: Ui }) {
   const theme = useSyncExternalStore<Theme | null>(subscribe, getTheme, getServerTheme);
 
   const toggle = () => {
@@ -46,8 +46,8 @@ export function ThemeToggle({ t }: { t: Dict }) {
     <button
       type="button"
       onClick={toggle}
-      aria-label={isLight ? t.a11y.themeToDark : t.a11y.themeToLight}
-      className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink/80 hover:border-solar hover:text-accent transition-colors data-cursor"
+      aria-label={isLight ? ui.a11y.themeToDark : ui.a11y.themeToLight}
+      className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink/80 hover:border-energy hover:text-accent transition-colors data-cursor"
     >
       <svg
         viewBox="0 0 24 24"
