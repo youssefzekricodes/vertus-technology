@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Dropdown, Label } from "@heroui/react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import type { Locale } from "@/content/types";
 import type { Ui } from "@/content/ui";
 import { path } from "@/lib/routes";
@@ -98,7 +99,7 @@ export function Navbar({ ui, locale }: { ui: Ui; locale: Locale }) {
     };
   }, [open]);
 
-  // Transparent over the dark home hero only; solid glass everywhere else.
+  // Transparent over the daylight home hero only; solid glass everywhere else.
   const solid = scrolled || !isHome;
 
   type Link_ = { href: string; label: string; active: boolean };
@@ -116,7 +117,7 @@ export function Navbar({ ui, locale }: { ui: Ui; locale: Locale }) {
 
   return (
     <header
-      data-theme={solid ? undefined : "dark"}
+      data-theme={solid ? undefined : "light"}
       className={`fixed inset-x-0 top-0 z-50 transition-[background,box-shadow,border-color] duration-500 border-b ${
         solid ? "glass border-line/60 shadow-[0_8px_30px_rgba(0,0,0,0.12)]" : "border-transparent"
       }`}

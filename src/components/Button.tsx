@@ -51,7 +51,7 @@ export function Button({
 
   const cls = [
     "inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold",
-    "transition-[background,color,border-color,box-shadow] duration-300 will-change-transform",
+    "transition-[background,color,border-color,box-shadow,transform] duration-300 ease-out will-change-transform",
     variant === "energy"
       ? "bg-energy text-on-energy hover:bg-energy-hover shadow-[0_0_0_0_rgba(34,196,122,0)] hover:shadow-[0_8px_36px_-8px_rgba(34,196,122,0.45)]"
       : "border border-line bg-base/50 backdrop-blur-md text-ink hover:border-energy hover:text-accent",

@@ -5,94 +5,20 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 
 /**
- * Procedural solar scene: fbm-noise sun, instanced photovoltaic field,
- * and particles streaming from the sun down onto the panels.
+ * Daylight solar scene: bright sun in a clear sky (the sky gradient and clouds
+ * are CSS behind this transparent canvas), green fields, hazy hills, an
+ * instanced photovoltaic field and sunlight particles landing on the panels.
  * `quality` trims particle and instance counts on small/low-end devices.
  */
 
-const SUN_POS = new THREE.Vector3(0, 2.4, -16);
+const HORIZON = "#d7ecf8";
+/** Centre of the solar farm: the camera orbits around it. */
+const FARM = { x: 0, y: -2, z: -0.5 };
 
-const sunVertex = /* glsl */ `
-  varying vec3 vNormal;
-  varying vec3 vPos;
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    vPos = position;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const sunFragment = /* glsl */ `
-  uniform float uTime;
-  varying vec3 vNormal;
-  varying vec3 vPos;
-
-  // hash + 3d value noise + fbm — cheap procedural plasma
-  float hash(vec3 p) {
-    p = fract(p * 0.3183099 + 0.1);
-    p *= 17.0;
-    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
-  }
-  float noise(vec3 x) {
-    vec3 i = floor(x);
-    vec3 f = fract(x);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-          mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-      mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-          mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
-      f.z);
-  }
-  float fbm(vec3 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 4; i++) {
-      v += a * noise(p);
-      p *= 2.1;
-      a *= 0.5;
-    }
-    return v;
-  }
-
-  void main() {
-    vec3 p = normalize(vPos);
-    float n = fbm(p * 3.0 + vec3(0.0, uTime * 0.05, uTime * 0.08));
-    float n2 = fbm(p * 7.0 - uTime * 0.06);
-    float plasma = smoothstep(0.25, 0.85, n * 0.7 + n2 * 0.45);
-
-    vec3 deep = vec3(0.55, 0.18, 0.02);
-    vec3 mid  = vec3(0.94, 0.55, 0.08);
-    vec3 hot  = vec3(1.0, 0.86, 0.45);
-    vec3 col = mix(deep, mid, plasma);
-    col = mix(col, hot, smoothstep(0.6, 1.0, plasma));
-
-    // limb darkening + rim
-    float facing = dot(vNormal, vec3(0.0, 0.0, 1.0));
-    col *= 0.55 + 0.45 * smoothstep(-0.2, 0.9, facing);
-    col += vec3(1.0, 0.75, 0.35) * pow(1.0 - clamp(facing, 0.0, 1.0), 2.0) * 0.6;
-
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
-
-const glowVertex = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const glowFragment = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    float d = distance(vUv, vec2(0.5));
-    float a = smoothstep(0.5, 0.0, d);
-    a = pow(a, 2.2) * 0.85;
-    gl_FragColor = vec4(1.0, 0.72, 0.28, a);
-  }
-`;
+function sunPosition(aspect: number) {
+  // Upper-right on landscape screens, nearer the middle on portrait phones.
+  return new THREE.Vector3(aspect < 1 ? 5 : 21, aspect < 1 ? 14.6 : 12.6, -26);
+}
 
 const particleVertex = /* glsl */ `
   uniform float uTime;
@@ -119,38 +45,327 @@ const particleFragment = /* glsl */ `
   void main() {
     float d = distance(gl_PointCoord, vec2(0.5));
     if (d > 0.5) discard;
-    float a = smoothstep(0.5, 0.05, d) * vFade * 0.9;
-    gl_FragColor = vec4(1.0, 0.78, 0.32, a);
+    float a = smoothstep(0.5, 0.05, d) * vFade * 0.85;
+    gl_FragColor = vec4(1.0, 0.84, 0.36, a);
   }
 `;
 
-function Sun() {
-  const mat = useRef<THREE.ShaderMaterial>(null);
-  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
-  useFrame((_, dt) => {
-    if (mat.current) mat.current.uniforms.uTime.value += dt;
+/** Soft radial sprite used for the sun's halo. */
+function makeGlowTexture(inner: string, outer: string): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d")!;
+  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grad.addColorStop(0, inner);
+  grad.addColorStop(0.18, inner);
+  grad.addColorStop(0.45, outer);
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Soft sunburst: tapered rays fading outward, drawn once to a canvas. */
+function makeRaysTexture(): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = c.height = 512;
+  const g = c.getContext("2d")!;
+  g.translate(256, 256);
+  const rays = 18;
+  for (let i = 0; i < rays; i++) {
+    const long = i % 2 === 0;
+    const len = long ? 250 : 170;
+    const half = (Math.PI / rays) * (long ? 0.32 : 0.22);
+    const grad = g.createRadialGradient(0, 0, 40, 0, 0, len);
+    grad.addColorStop(0, "rgba(255,226,120,0.55)");
+    grad.addColorStop(1, "rgba(255,226,120,0)");
+    g.fillStyle = grad;
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.arc(0, 0, len, (i / rays) * Math.PI * 2 - half, (i / rays) * Math.PI * 2 + half);
+    g.closePath();
+    g.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const CAMERA_REST = new THREE.Vector3(0, 1.1, 8.5);
+
+/** Keeps `live` = sun base position + camera offset, so the sun behaves as if infinitely far away. */
+function useSunFollow(base: THREE.Vector3, live: THREE.Vector3) {
+  const { camera } = useThree();
+  useFrame(() => {
+    live.copy(base).add(camera.position).sub(CAMERA_REST);
+  });
+}
+
+function Sun({ position, scale = 1 }: { position: THREE.Vector3; scale?: number }) {
+  const root = useRef<THREE.Group>(null);
+  const halo = useMemo(() => makeGlowTexture("rgba(255,222,100,0.95)", "rgba(255,205,70,0.28)"), []);
+  const sheen = useMemo(() => makeGlowTexture("rgba(255,255,235,0.9)", "rgba(255,245,200,0.15)"), []);
+  const raysTex = useMemo(() => makeRaysTexture(), []);
+  useEffect(
+    () => () => {
+      halo.dispose();
+      sheen.dispose();
+      raysTex.dispose();
+    },
+    [halo, sheen, raysTex]
+  );
+  const glow = useRef<THREE.Sprite>(null);
+  const rays = useRef<THREE.Mesh>(null);
+  const rays2 = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }, dt) => {
+    const t = clock.elapsedTime;
+    if (root.current) root.current.position.copy(position);
+    if (glow.current) {
+      const k = 1 + Math.sin(t * 1.1) * 0.05 + Math.sin(t * 2.7) * 0.02; // shimmer
+      glow.current.scale.set(22 * k, 22 * k, 1);
+    }
+    if (rays.current) rays.current.rotation.z += dt * 0.05;
+    if (rays2.current) {
+      rays2.current.rotation.z -= dt * 0.03;
+      (rays2.current.material as THREE.MeshBasicMaterial).opacity = 0.55 + Math.sin(t * 0.9) * 0.2;
+    }
   });
   return (
-    <group position={SUN_POS}>
+    <group ref={root} position={position} scale={scale}>
+      {/* two counter-rotating sunbursts + a shimmering golden halo */}
+      <mesh ref={rays} position={[0, 0, -0.9]}>
+        <planeGeometry args={[26, 26]} />
+        <meshBasicMaterial map={raysTex} transparent depthWrite={false} fog={false} toneMapped={false} />
+      </mesh>
+      <mesh ref={rays2} position={[0, 0, -0.8]} rotation={[0, 0, 0.17]}>
+        <planeGeometry args={[19, 19]} />
+        <meshBasicMaterial map={raysTex} transparent opacity={0.6} depthWrite={false} fog={false} toneMapped={false} />
+      </mesh>
+      <sprite ref={glow} scale={[22, 22, 1]} position={[0, 0, -0.6]}>
+        <spriteMaterial map={halo} transparent depthWrite={false} fog={false} toneMapped={false} />
+      </sprite>
       <mesh>
-        <sphereGeometry args={[4.6, 48, 48]} />
-        <shaderMaterial
-          ref={mat}
-          uniforms={uniforms}
-          vertexShader={sunVertex}
-          fragmentShader={sunFragment}
-        />
+        <circleGeometry args={[3.7, 64]} />
+        <meshBasicMaterial color="#ffd23f" toneMapped={false} fog={false} />
       </mesh>
-      <mesh scale={[16, 16, 1]}>
-        <planeGeometry />
-        <shaderMaterial
-          vertexShader={glowVertex}
-          fragmentShader={glowFragment}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
+      <mesh position={[0, 0, 0.01]}>
+        <circleGeometry args={[3.2, 64]} />
+        <meshBasicMaterial color="#ffe277" toneMapped={false} fog={false} />
       </mesh>
+      {/* specular hot spot for a glossy, shiny disc */}
+      <sprite scale={[5.2, 5.2, 1]} position={[-0.9, 0.9, 0.05]}>
+        <spriteMaterial map={sheen} transparent depthWrite={false} fog={false} toneMapped={false} />
+      </sprite>
+    </group>
+  );
+}
+
+/**
+ * Lens flare: soft discs on the line from the sun through the screen centre.
+ * They slide as the camera follows the cursor, which makes the sun feel bright.
+ */
+const FLARES: [number, number, string][] = [
+  [0.35, 0.9, "rgba(255,236,170,0.28)"],
+  [0.7, 0.45, "rgba(255,250,225,0.22)"],
+  [1.05, 1.2, "rgba(255,240,200,0.12)"],
+];
+
+function LensFlare({ sun }: { sun: THREE.Vector3 }) {
+  const { camera } = useThree();
+  const textures = useMemo(() => FLARES.map(([, , c]) => makeGlowTexture(c, c.replace(/[\d.]+\)$/, "0.08)"))), []);
+  useEffect(() => () => textures.forEach((t) => t.dispose()), [textures]);
+  const refs = useRef<(THREE.Sprite | null)[]>([]);
+  const tmp = useMemo(() => ({ ndc: new THREE.Vector3(), p: new THREE.Vector3(), dir: new THREE.Vector3() }), []);
+  useFrame(() => {
+    tmp.ndc.copy(sun).project(camera);
+    const visible = tmp.ndc.z < 1 && Math.abs(tmp.ndc.x) < 1.3 && Math.abs(tmp.ndc.y) < 1.3;
+    FLARES.forEach(([k, size], i) => {
+      const s = refs.current[i];
+      if (!s) return;
+      s.visible = visible;
+      if (!visible) return;
+      // point on the sun→centre line, placed 10 units in front of the camera
+      tmp.p.set(tmp.ndc.x * (1 - k), tmp.ndc.y * (1 - k), 0.5).unproject(camera);
+      tmp.dir.copy(tmp.p).sub(camera.position).normalize();
+      s.position.copy(camera.position).addScaledVector(tmp.dir, 10);
+      s.scale.set(size, size, 1);
+    });
+  });
+  return (
+    <group>
+      {FLARES.map((_, i) => (
+        <sprite
+          key={i}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+        >
+          <spriteMaterial
+            map={textures[i]}
+            transparent
+            depthWrite={false}
+            depthTest={false}
+            fog={false}
+            toneMapped={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </sprite>
+      ))}
+    </group>
+  );
+}
+
+/* ---------------- Land: low-poly rolling terrain + distant ridge ---------------- */
+
+/** Deterministic 2D value noise (no Math.random → stable across renders). */
+function hash2(x: number, y: number) {
+  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return h - Math.floor(h);
+}
+function noise2(x: number, y: number) {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const fx = x - ix;
+  const fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  const a = hash2(ix, iy);
+  const b = hash2(ix + 1, iy);
+  const c = hash2(ix, iy + 1);
+  const d = hash2(ix + 1, iy + 1);
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+function fbm2(x: number, y: number) {
+  let v = 0;
+  let amp = 0.5;
+  for (let i = 0; i < 4; i++) {
+    v += amp * noise2(x, y);
+    x *= 2.03;
+    y *= 2.03;
+    amp *= 0.5;
+  }
+  return v;
+}
+
+const GRASS_LOW = new THREE.Color("#4f8a3c");
+const GRASS_MID = new THREE.Color("#78ad4f");
+const GRASS_HIGH = new THREE.Color("#b3cf6e");
+
+function Terrain() {
+  const geometry = useMemo(() => {
+    // faceted look: non-indexed geometry + flat shading
+    // 360°: a square of land centred on the solar farm
+    const g = new THREE.PlaneGeometry(320, 320, 84, 84).toNonIndexed();
+    g.rotateX(-Math.PI / 2);
+    const pos = g.attributes.position as THREE.BufferAttribute;
+    const colors = new Float32Array(pos.count * 3);
+    const col = new THREE.Color();
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i) + FARM.z;
+      // keep the solar farm area flat, let hills grow with distance
+      const dist = Math.hypot(x / 1.4, z - FARM.z);
+      const grow = THREE.MathUtils.smoothstep(dist, 9, 30);
+      const n = fbm2(x * 0.045 + 3.1, z * 0.045 - 1.7);
+      const h = (n - 0.35) * 9 * grow + grow * 0.6;
+      pos.setY(i, Math.max(h, 0));
+      const t = THREE.MathUtils.clamp(h / 6 + n * 0.35, 0, 1);
+      col.copy(GRASS_LOW).lerp(GRASS_MID, Math.min(t * 1.6, 1));
+      if (t > 0.6) col.lerp(GRASS_HIGH, (t - 0.6) / 0.4);
+      colors.set([col.r, col.g, col.b], i * 3);
+    }
+    g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    g.computeVertexNormals();
+    return g;
+  }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <mesh geometry={geometry} position={[0, GROUND_Y, FARM.z]}>
+      <meshStandardMaterial vertexColors flatShading roughness={0.95} />
+    </mesh>
+  );
+}
+
+/** A ring of faceted blue-green mountains around the valley, softened by haze. */
+const RIDGE = Array.from({ length: 16 }, (_, i) => {
+  const a = (i / 16) * Math.PI * 2 + 0.2;
+  const r = 100 + hash2(i, 3) * 22;
+  const colors = ["#6f9aa4", "#7aa6ae", "#6c9793", "#80abb3"];
+  return {
+    x: Math.sin(a) * r,
+    z: FARM.z - Math.cos(a) * r,
+    radius: 20 + hash2(i, 7) * 16,
+    height: 13 + hash2(i, 11) * 15,
+    color: colors[i % colors.length],
+  };
+});
+
+function Ridge() {
+  return (
+    <group>
+      {RIDGE.map((m, i) => (
+        <mesh key={i} position={[m.x, GROUND_Y + m.height / 2 - 1, m.z]} rotation={[0, i * 0.7, 0]}>
+          <coneGeometry args={[m.radius, m.height, 7, 1]} />
+          <meshStandardMaterial color={m.color} flatShading roughness={1} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** Fluffy cloud sprite drawn from overlapping puffs. */
+function makeCloudTexture(): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 256;
+  const g = c.getContext("2d")!;
+  const puffs: [number, number, number][] = [
+    [150, 160, 70],
+    [230, 120, 90],
+    [320, 130, 80],
+    [390, 165, 60],
+    [260, 175, 75],
+  ];
+  for (const [x, y, r] of puffs) {
+    const grad = g.createRadialGradient(x, y - r * 0.2, 0, x, y, r);
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.6, "rgba(255,255,255,0.9)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = grad;
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Clouds on a slow-turning ring around the whole scene (correct in 360°). */
+const CLOUDS3D = Array.from({ length: 14 }, (_, i) => {
+  const a = (i / 14) * Math.PI * 2 + hash2(i, 5) * 0.35;
+  const r = 62 + hash2(i, 9) * 30;
+  const w = 22 + hash2(i, 13) * 20;
+  return { x: Math.sin(a) * r, y: 16 + hash2(i, 17) * 14, z: FARM.z - Math.cos(a) * r, w, o: 0.75 + hash2(i, 19) * 0.25 };
+});
+
+function Clouds() {
+  const tex = useMemo(() => makeCloudTexture(), []);
+  useEffect(() => () => tex.dispose(), [tex]);
+  const group = useRef<THREE.Group>(null);
+  useFrame((_, dt) => {
+    if (group.current) group.current.rotation.y += Math.min(dt, 0.05) * 0.006;
+  });
+  return (
+    <group ref={group} position={[0, 0, FARM.z]}>
+      {CLOUDS3D.map((c, i) => (
+        <sprite key={i} position={[c.x, c.y, c.z - FARM.z]} scale={[c.w, c.w / 2, 1]}>
+          <spriteMaterial map={tex} transparent opacity={c.o} depthWrite={false} fog={false} />
+        </sprite>
+      ))}
     </group>
   );
 }
@@ -194,7 +409,7 @@ function panelTargets(layout: Panel[], count: number): THREE.Vector3[] {
   });
 }
 
-function Particles({ count, layout }: { count: number; layout: Panel[] }) {
+function Particles({ count, layout, sun }: { count: number; layout: Panel[]; sun: THREE.Vector3 }) {
   const mat = useRef<THREE.ShaderMaterial>(null);
   const geo = useMemo(() => {
     const g = new THREE.BufferGeometry();
@@ -211,7 +426,7 @@ function Particles({ count, layout }: { count: number; layout: Panel[] }) {
         THREE.MathUtils.randFloatSpread(1.6),
         Math.random() * 0.9 + 0.3
       ).normalize();
-      const s = SUN_POS.clone().addScaledVector(dir, 4.7);
+      const s = sun.clone().addScaledVector(dir, 2);
       start.set([s.x, s.y, s.z], i * 3);
       end.set([ends[i].x, ends[i].y, ends[i].z], i * 3);
       offset[i] = Math.random();
@@ -225,7 +440,7 @@ function Particles({ count, layout }: { count: number; layout: Panel[] }) {
     g.setAttribute("aSpeed", new THREE.BufferAttribute(speed, 1));
     g.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
     return g;
-  }, [count, layout]);
+  }, [count, layout, sun]);
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
   useFrame((_, dt) => {
     if (mat.current) mat.current.uniforms.uTime.value += dt;
@@ -239,7 +454,6 @@ function Particles({ count, layout }: { count: number; layout: Panel[] }) {
         fragmentShader={particleFragment}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
       />
     </points>
   );
@@ -252,10 +466,18 @@ function makeCellTexture(): THREE.CanvasTexture {
   canvas.height = 320;
   const g = canvas.getContext("2d")!;
   const grad = g.createLinearGradient(0, 0, 512, 320);
-  grad.addColorStop(0, "#2d5fa3");
-  grad.addColorStop(0.5, "#1a4178");
-  grad.addColorStop(1, "#0f2a55");
+  grad.addColorStop(0, "#3a74c2");
+  grad.addColorStop(0.5, "#1f4f93");
+  grad.addColorStop(1, "#14356b");
   g.fillStyle = grad;
+  g.fillRect(0, 0, 512, 320);
+  // sky reflection sweeping across the glass
+  const sheen = g.createLinearGradient(0, 0, 512, 320);
+  sheen.addColorStop(0, "rgba(190,225,255,0.35)");
+  sheen.addColorStop(0.35, "rgba(190,225,255,0.05)");
+  sheen.addColorStop(0.6, "rgba(255,255,255,0)");
+  sheen.addColorStop(0.8, "rgba(210,235,255,0.18)");
+  g.fillStyle = sheen;
   g.fillRect(0, 0, 512, 320);
 
   const cols = 10;
@@ -344,9 +566,10 @@ function PanelField({ layout }: { layout: Panel[] }) {
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y, -6]}>
-        <planeGeometry args={[70, 40]} />
-        <meshStandardMaterial color="#0d1013" roughness={1} />
+      {/* light gravel pad under the solar farm */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y + 0.02, -1]}>
+        <planeGeometry args={[15.5, 8.5]} />
+        <meshStandardMaterial color="#cfc6a8" roughness={1} />
       </mesh>
       <Instanced matrices={legs}>
         <boxGeometry args={[0.07, 1, 0.07]} />
@@ -362,58 +585,101 @@ function PanelField({ layout }: { layout: Panel[] }) {
           map={texture}
           emissiveMap={texture}
           emissive="#ffffff"
-          emissiveIntensity={0.22}
-          metalness={0.45}
-          roughness={0.3}
+          emissiveIntensity={0.12}
+          metalness={0.35}
+          roughness={0.25}
         />
       </Instanced>
     </group>
   );
 }
 
+const SWAY_PERIOD = 26; // seconds for one slow left–right–left glide
+
+/**
+ * Camera that animates on its own (works on phones, no cursor needed):
+ * a slow sideways glide past the farm, a gentle bob and dolly, plus a light cursor
+ * offset on desktop. Frame-rate independent (damped with the frame delta).
+ */
 function Rig() {
-  const { camera, pointer } = useThree();
-  const scroll = useRef(0);
-  useFrame(() => {
-    if (typeof window !== "undefined") {
-      scroll.current = Math.min(window.scrollY / window.innerHeight, 1);
-    }
-    const tx = pointer.x * 0.45;
-    const ty = 1.1 + pointer.y * 0.25 - scroll.current * 1.4;
-    camera.position.x += (tx - camera.position.x) * 0.04;
-    camera.position.y += (ty - camera.position.y) * 0.04;
-    camera.lookAt(0, 0.6 - scroll.current, -6);
+  const { camera, pointer, size } = useThree();
+  const st = useRef({ time: 0, px: 0, py: 0, x: 0, prevX: 0, roll: 0, h: 3.1, look: 3.5, scroll: 0 });
+  useFrame((_, dt) => {
+    const s = st.current;
+    const delta = Math.min(dt, 0.05); // no jumps after a tab switch
+    s.time += delta;
+    const t = s.time;
+    s.scroll = Math.min(window.scrollY / window.innerHeight, 1);
+
+    // cursor offset (desktop); stays 0 on touch devices
+    s.px = THREE.MathUtils.damp(s.px, pointer.x, 2.5, delta);
+    s.py = THREE.MathUtils.damp(s.py, pointer.y, 2.5, delta);
+
+    // Lateral glide (a drone tracking shot): the camera slides sideways while
+    // looking straight ahead, so nearby panels drift past but the distant sun
+    // and mountains stay put — strong depth, and the sun never covers the text.
+    // small, centred range: just enough movement to explore the scene
+    const glide = size.width / size.height < 1 ? 0.45 : 0.8;
+    s.prevX = s.x;
+    s.x = Math.sin((t / SWAY_PERIOD) * Math.PI * 2) * glide + s.px * 0.5;
+    const bob = Math.sin(t * 0.6) * 0.1;
+    s.h = THREE.MathUtils.damp(s.h, 3.1 + s.py * 0.25 + bob - s.scroll * 1.4, 3, delta);
+    s.look = THREE.MathUtils.damp(s.look, 3.5 + s.py * 0.2 - s.scroll, 3, delta);
+    const radius = 9 + Math.sin(t * 0.21) * 0.25; // slight dolly in/out
+
+    camera.position.set(FARM.x + s.x, FARM.y + s.h, FARM.z + radius);
+    camera.lookAt(FARM.x + s.x, FARM.y + s.look, FARM.z - 5.5); // pure pan: the view stays centred
+
+    // bank gently with the sideways motion
+    const speed = (s.x - s.prevX) / Math.max(delta, 1e-3);
+    s.roll = THREE.MathUtils.damp(s.roll, -speed * 0.008, 2, delta);
+    camera.rotateZ(s.roll);
   });
   return null;
 }
 
-export default function Hero3D({ quality }: { quality: "high" | "low" }) {
-  const particles = quality === "high" ? 700 : 220;
+function Scene({ quality }: { quality: "high" | "low" }) {
+  const { size } = useThree();
+  const portrait = size.width / size.height < 1;
+  const sun = useMemo(() => sunPosition(portrait ? 0.5 : 1.6), [portrait]);
+  const sunLive = useMemo(() => sun.clone(), [sun]);
+  useSunFollow(sun, sunLive);
+  const particles = quality === "high" ? 520 : 180;
   const layout = useMemo(
     () => (quality === "high" ? panelLayout(3, 5) : panelLayout(2, 3)),
     [quality]
   );
   return (
+    <>
+      <fog attach="fog" args={[HORIZON, 26, 160]} />
+      <hemisphereLight args={["#d6ecff", "#55703a", 1.0]} />
+      <ambientLight intensity={0.35} />
+      {/* the sun itself, plus a soft front fill so the glass faces read */}
+      <directionalLight position={[sun.x, sun.y, sun.z]} intensity={2.1} color="#fff1cc" />
+      <directionalLight position={[-4, 7, 9]} intensity={0.9} color="#ffffff" />
+      <Sun position={sunLive} scale={portrait ? 0.45 : 1} />
+      <LensFlare sun={sunLive} />
+      <Clouds />
+      <Ridge />
+      <Terrain />
+      <PanelField layout={layout} />
+      <Particles count={particles} layout={layout} sun={sun} />
+      <Rig />
+    </>
+  );
+}
+
+export default function Hero3D({ quality }: { quality: "high" | "low" }) {
+  return (
     <Canvas
       camera={{ position: [0, 1.1, 8.5], fov: 50 }}
       dpr={quality === "high" ? [1, 2] : 1}
-      gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
+      gl={{ antialias: quality === "high", alpha: true, powerPreference: "high-performance" }}
       style={{ pointerEvents: "none" }}
       eventSource={typeof document !== "undefined" ? document.body : undefined}
       frameloop="always"
     >
-      <fog attach="fog" args={["#101214", 14, 34]} />
-      <ambientLight intensity={0.3} />
-      <hemisphereLight args={["#b9c9e0", "#1a1410", 0.5]} />
-      {/* sun rim from behind, a front key so the glass face reads, and a high
-          warm light placed at the panels' mirror angle to catch glints */}
-      <directionalLight position={[0, 6, -10]} intensity={1.6} color="#f6c35c" />
-      <directionalLight position={[-4, 7, 9]} intensity={1.1} color="#ffffff" />
-      <directionalLight position={[4, 10, -1]} intensity={0.8} color="#ffe2a8" />
-      <Sun />
-      <PanelField layout={layout} />
-      <Particles count={particles} layout={layout} />
-      <Rig />
+      <Scene quality={quality} />
     </Canvas>
   );
 }

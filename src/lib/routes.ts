@@ -1,6 +1,7 @@
 import type { Locale, PageKey } from "@/content/types";
 
-/** Clean, keyword-bearing URLs (same slug in both languages; Arabic under /ar). */
+/** Clean, keyword-bearing URLs (same slug in both languages). Arabic is the
+ * default language at the site root; French lives under /fr. */
 export const routes: Record<PageKey, string> = {
   home: "",
   company: "vertus-technology",
@@ -22,7 +23,7 @@ export const routes: Record<PageKey, string> = {
 };
 
 export function path(locale: Locale, key: PageKey, extra?: string): string {
-  const base = locale === "ar" ? "/ar" : "";
+  const base = locale === "fr" ? "/fr" : "";
   const slug = [routes[key], extra].filter(Boolean).join("/");
   return slug ? `${base}/${slug}` : base || "/";
 }
@@ -32,6 +33,6 @@ export function keyFromSlug(slug: string): PageKey | undefined {
 }
 
 export function otherLocalePath(locale: Locale, currentPath: string): string {
-  if (locale === "ar") return currentPath.replace(/^\/ar(?=\/|$)/, "") || "/";
-  return currentPath === "/" ? "/ar" : `/ar${currentPath}`;
+  if (locale === "fr") return currentPath.replace(/^\/fr(?=\/|$)/, "") || "/";
+  return currentPath === "/" ? "/fr" : `/fr${currentPath}`;
 }

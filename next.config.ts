@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   poweredByHeader: false,
+  // Arabic moved from /ar to the site root: keep old links working.
+  async redirects() {
+    return [
+      { source: "/ar", destination: "/", permanent: true },
+      { source: "/ar/:path*", destination: "/:path*", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

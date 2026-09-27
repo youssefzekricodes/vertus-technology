@@ -2,7 +2,7 @@ import { Archivo, IBM_Plex_Sans_Arabic } from "next/font/google";
 import type { Locale } from "@/content/types";
 import { getUi } from "@/content/ui";
 import { path } from "@/lib/routes";
-import { themeScript } from "@/lib/theme";
+import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FloatingContact } from "@/components/FloatingContact";
@@ -32,7 +32,7 @@ export function Shell({ locale, children }: { locale: Locale; children: React.Re
     <html
       lang={locale}
       dir={locale === "ar" ? "rtl" : "ltr"}
-      data-theme="dark"
+      data-theme={DEFAULT_THEME}
       className={`${archivo.variable} ${plexArabic.variable}`}
       suppressHydrationWarning
     >

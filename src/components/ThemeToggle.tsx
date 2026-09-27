@@ -8,19 +8,7 @@ function subscribe(onChange: () => void) {
   const root = document.documentElement;
   const observer = new MutationObserver(onChange);
   observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-
-  // Follow OS changes until the visitor picks a theme explicitly.
-  const mq = window.matchMedia("(prefers-color-scheme: light)");
-  const onSystem = (e: MediaQueryListEvent) => {
-    if (localStorage.getItem(THEME_KEY)) return;
-    root.setAttribute("data-theme", e.matches ? "light" : "dark");
-  };
-  mq.addEventListener("change", onSystem);
-
-  return () => {
-    observer.disconnect();
-    mq.removeEventListener("change", onSystem);
-  };
+  return () => observer.disconnect();
 }
 
 const getTheme = (): Theme =>

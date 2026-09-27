@@ -12,6 +12,7 @@
  *     (Keep the same deployment so the /exec URL does not change.)
  */
 
+const SCRIPT_VERSION = "2026-09-27";
 const SHEET_NAME = "Prospects";
 const FOLDER_NAME = "VERTUS — pièces jointes";
 const NOTIFY_EMAIL = "vertustechnology@gmail.com"; // "" to disable e-mail alerts
@@ -104,6 +105,33 @@ function setup() {
   );
 
   if (!sheet.getFilter()) sheet.getRange(1, 1, sheet.getMaxRows(), COLUMNS.length).createFilter();
+}
+
+/**
+ * Open the /exec URL in a browser to check which version is live and whether
+ * every permission was granted. Expected: {"ok":true,"version":"2026-09-27",...}
+ */
+function doGet() {
+  const checks = {};
+  try {
+    getSheet_();
+    checks.sheets = "ok";
+  } catch (err) {
+    checks.sheets = String(err);
+  }
+  try {
+    DriveApp.getRootFolder();
+    checks.drive = "ok";
+  } catch (err) {
+    checks.drive = String(err);
+  }
+  try {
+    MailApp.getRemainingDailyQuota();
+    checks.mail = "ok";
+  } catch (err) {
+    checks.mail = String(err);
+  }
+  return json_({ ok: true, version: SCRIPT_VERSION, checks: checks });
 }
 
 function doPost(e) {

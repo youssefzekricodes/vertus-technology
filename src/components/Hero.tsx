@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionValue, useScroll, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import type { Locale, Page } from "@/content/types";
 import type { Ui } from "@/content/ui";
 import { path } from "@/lib/routes";
@@ -20,11 +21,73 @@ function webglAvailable(): boolean {
   }
 }
 
+/**
+ * A soft cumulus cloud built from a few overlapping puffs. It drifts on its own
+ * and shifts against the cursor — bigger (nearer) clouds move more (parallax).
+ */
+function Cloud({
+  top,
+  left,
+  scale,
+  speed,
+  opacity,
+  mx,
+  my,
+}: {
+  top: string;
+  left: string;
+  scale: number;
+  speed: number;
+  opacity: number;
+  mx: MotionValue<number>;
+  my: MotionValue<number>;
+}) {
+  const x = useTransform(mx, (v) => v * -38 * scale);
+  const y = useTransform(my, (v) => v * -16 * scale);
+  return (
+    <motion.div className="absolute" style={{ top, left, x, y }}>
+      <div
+        className="cloud"
+        style={{ position: "relative", width: 260 * scale, height: 90 * scale, opacity, ["--cloud-speed" as string]: `${speed}s` }}
+      >
+        <span style={{ left: "0%", top: "38%", width: "46%", height: "62%" }} />
+        <span style={{ left: "20%", top: "8%", width: "42%", height: "86%" }} />
+        <span style={{ left: "44%", top: "0%", width: "38%", height: "96%" }} />
+        <span style={{ left: "62%", top: "30%", width: "38%", height: "68%" }} />
+      </div>
+    </motion.div>
+  );
+}
+
+const CLOUDS = [
+  { top: "9%", left: "6%", scale: 1.25, speed: 70, opacity: 0.95 },
+  { top: "20%", left: "58%", scale: 0.85, speed: 55, opacity: 0.8 },
+  { top: "5%", left: "38%", scale: 0.6, speed: 85, opacity: 0.7 },
+  { top: "28%", left: "-4%", scale: 0.7, speed: 62, opacity: 0.65 },
+  { top: "14%", left: "80%", scale: 1, speed: 75, opacity: 0.85 },
+];
+
 export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale: Locale }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const [mode, setMode] = useState<"pending" | "high" | "low" | "static">("pending");
   const [visible, setVisible] = useState(true);
+
+  // Cursor position (-1…1), smoothed by a spring for silky parallax.
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const mx = useSpring(pointerX, { stiffness: 45, damping: 18, mass: 0.8 });
+  const my = useSpring(pointerY, { stiffness: 45, damping: 18, mass: 0.8 });
+  useEffect(() => {
+    if (reduced) return;
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      pointerX.set((e.clientX / window.innerWidth) * 2 - 1);
+      pointerY.set((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [reduced, pointerX, pointerY]);
 
   useEffect(() => {
     if (reduced || !webglAvailable()) {
@@ -60,12 +123,21 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
   const contentOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
 
   return (
+    <>
     <section
       id="accueil"
       ref={ref}
-      data-theme="dark"
-      className="relative h-[100svh] min-h-[620px] overflow-hidden bg-base"
+      data-theme="light"
+      className="hero-sky relative h-[100svh] min-h-[620px] overflow-hidden"
     >
+      {/* CSS clouds for the still version; the 3D scene has its own 360° clouds */}
+      {(mode === "static" || mode === "pending") && (
+        <div className="absolute inset-0" aria-hidden="true">
+          {CLOUDS.map((c, i) => (
+            <Cloud key={i} {...c} mx={mx} my={my} />
+          ))}
+        </div>
+      )}
       {/* 3D scene / fallback */}
       <motion.div
         className="absolute inset-0"
@@ -75,8 +147,10 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
         {mode !== "static" && mode !== "pending" && visible && <Hero3D quality={mode} />}
         {(mode === "static" || mode === "pending") && (
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_18%,rgba(246,195,92,0.32),rgba(240,168,27,0.08)_45%,transparent_75%)]" />
-            <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-base-deep to-transparent" />
+            {/* sun */}
+            <div className="absolute end-[12%] top-[9%] h-36 w-36 rounded-full bg-[radial-gradient(circle,#ffe277_0%,#ffe277_78%,#ffd23f_80%)] shadow-[0_0_50px_14px_rgba(255,210,63,0.55),0_0_140px_50px_rgba(255,200,60,0.25)]" />
+            {/* fields */}
+            <div className="absolute bottom-0 inset-x-0 h-[30%] bg-gradient-to-b from-[#8fbf72] via-[#6fa257] to-[#5b8f47]" />
           </div>
         )}
       </motion.div>
@@ -88,20 +162,22 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
         aria-hidden="true"
       />
 
-      {/* readability scrim */}
-      <div className="absolute inset-0 bg-gradient-to-b from-base/55 via-transparent to-transparent" aria-hidden="true" />
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-base to-transparent" aria-hidden="true" />
+      {/* readability: a soft haze of light behind the headline */}
+      <div
+        className="absolute inset-0 bg-[radial-gradient(ellipse_48%_36%_at_50%_48%,rgba(240,248,255,0.78),rgba(240,248,255,0.35)_55%,transparent_80%)]"
+        aria-hidden="true"
+      />
 
       {/* content */}
       <motion.div
-        className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center"
+        className="relative z-10 flex h-full flex-col items-center justify-center px-6 pb-[14vh] pt-16 text-center"
         style={reduced ? undefined : { y: contentY, opacity: contentOpacity }}
       >
         <motion.p
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15 }}
-          className="text-accent tracking-[0.3em] text-xs md:text-sm mb-6"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 py-1.5 text-xs font-semibold tracking-[0.25em] text-accent shadow-[0_8px_24px_-12px_rgba(12,34,64,0.35)] backdrop-blur-md md:text-sm"
           dir="ltr"
         >
           {hero.eyebrow}
@@ -110,7 +186,7 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
           initial={reduced ? false : { opacity: 0, y: 26 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl max-w-5xl"
+          className="display max-w-5xl text-4xl text-[#0a1f3d] drop-shadow-[0_2px_18px_rgba(255,255,255,0.65)] sm:text-5xl md:text-6xl lg:text-7xl"
         >
           {hero.h1}
         </motion.h1>
@@ -118,7 +194,7 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
           initial={reduced ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.55 }}
-          className="mt-7 max-w-xl text-mist text-base md:text-lg leading-relaxed"
+          className="mt-7 max-w-xl font-medium leading-relaxed text-[#27405f] md:text-lg"
         >
           {hero.lead}
         </motion.p>
@@ -131,7 +207,13 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
           <Button href={path(locale, "study")} track="cta_study_click">
             {ui.cta.study}
           </Button>
-          <Button href={whatsappHref(ui.contact.whatsappText)} variant="ghost" external track="whatsapp_click">
+          <Button
+            href={whatsappHref(ui.contact.whatsappText)}
+            variant="ghost"
+            external
+            track="whatsapp_click"
+            className="!border-white !bg-white/90 !text-[#0a1f3d] shadow-[0_10px_30px_-12px_rgba(10,31,61,0.45)] hover:!bg-white"
+          >
             {ui.cta.expert}
           </Button>
         </motion.div>
@@ -140,7 +222,7 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
             initial={reduced ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.95 }}
-            className="mt-8 text-sm md:text-base text-ink/75 tracking-wide"
+            className="mt-8 rounded-full bg-[#0a1f3d]/80 px-5 py-2 text-sm tracking-wide text-white backdrop-blur-md md:text-[1rem]"
           >
             {hero.message}
           </motion.p>
@@ -150,7 +232,7 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
       {/* scroll hint */}
       <motion.a
         href="#presentation"
-        className="absolute bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-mist text-xs tracking-widest hover:text-accent transition-colors"
+        className="absolute bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-xs font-medium tracking-widest text-white drop-shadow hover:text-[#eafff4] transition-colors"
         initial={reduced ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4, duration: 1 }}
@@ -165,5 +247,6 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
         </svg>
       </motion.a>
     </section>
+    </>
   );
 }

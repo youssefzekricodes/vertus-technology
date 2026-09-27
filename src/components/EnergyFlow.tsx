@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import type { Ui } from "@/content/ui";
 import { Icon3D, type Icon3DName } from "./Icon3D";
 import { SectionHeader } from "./SectionHeader";

@@ -212,6 +212,33 @@ body {
   }
 }
 
+/* Daylight hero sky: azure zenith → pale haze at the horizon */
+.hero-sky {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 38%, rgba(255, 255, 255, 0.55), transparent 70%),
+    linear-gradient(180deg, #2c7fd4 0%, #4d9ce3 28%, #86c1ef 50%, #c4e3f7 64%, #e4f2fb 72%, #cfe6c4 80%, #7fb163 88%, #5f9446 100%);
+}
+
+/* Soft cumulus clouds drifting slowly across the sky */
+@keyframes cloud-drift {
+  from {
+    transform: translate3d(-8vw, 0, 0);
+  }
+  to {
+    transform: translate3d(8vw, 0, 0);
+  }
+}
+.cloud {
+  animation: cloud-drift var(--cloud-speed, 60s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+.cloud > span {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 40%, #ffffff 0%, rgba(255, 255, 255, 0.92) 45%, rgba(255, 255, 255, 0) 72%);
+  filter: blur(2px);
+}
+
 /* Hidden-scrollbar horizontal swipers */
 .snap-row {
   scrollbar-width: none;

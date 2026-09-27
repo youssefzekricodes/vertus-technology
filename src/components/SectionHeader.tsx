@@ -16,7 +16,7 @@ export function SectionHeader({
       }`}
     >
       <h2 className="display-sub text-3xl md:text-5xl">{title}</h2>
-      {sub && <p className="mt-5 text-mist text-base md:text-lg leading-relaxed">{sub}</p>}
+      {sub && <p className="mt-5 text-mist text-[1rem] md:text-lg leading-relaxed">{sub}</p>}
     </Reveal>
   );
 }
