@@ -1,22 +1,21 @@
-export function LogoMark({ size = 34 }: { size?: number }) {
+import { logoMarkSvg } from "@/lib/logoMark";
+
+/** VERTUS mark (green ribbon + solar panel "V"), from the shared SVG source. */
+export function LogoMark({ size = 38, id = "logo" }: { size?: number; id?: string }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="6 15 52 52"
+    <span
       aria-hidden="true"
-      className="shrink-0"
-    >
-      <path d="M56 26 L44 26 L26 56 L38 56 Z" fill="currentColor" />
-      <path d="M8 26 L20 26 L38 56 L26 56 Z" fill="var(--color-energy)" />
-    </svg>
+      className="inline-block shrink-0"
+      style={{ width: size, height: size }}
+      dangerouslySetInnerHTML={{ __html: logoMarkSvg({ size, id }) }}
+    />
   );
 }
 
-export function Logo({ compact = false }: { compact?: boolean }) {
+export function Logo({ compact = false, id = "logo" }: { compact?: boolean; id?: string }) {
   return (
     <span className="inline-flex items-center gap-2.5 text-ink">
-      <LogoMark />
+      <LogoMark id={id} />
       {!compact && (
         <span
           dir="ltr"

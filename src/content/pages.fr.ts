@@ -5,9 +5,9 @@ export const pagesFr: Record<PageKey, Page> = {
   home: {
     key: "home",
     seo: {
-      title: "VERTUS Technology | Solutions solaires & énergie en Tunisie",
+      title: "Panneaux solaires & énergie solaire en Tunisie | VERTUS",
       description:
-        "Étude, ingénierie et installation photovoltaïque en Tunisie : solaire, pompage, stockage et mobilité électrique pour particuliers, entreprises et industriels.",
+        "Installation de panneaux solaires en Tunisie : étude, onduleur, batterie solaire, pompage solaire et bornes de recharge. Réduisez votre facture STEG avec VERTUS.",
     },
     hero: {
       eyebrow: "VERTUS Technology",
@@ -44,6 +44,12 @@ export const pagesFr: Record<PageKey, Page> = {
         ],
       },
       {
+        type: "text",
+        title: "Panneaux solaires et énergie solaire en Tunisie",
+        text: ["Avec un ensoleillement parmi les plus élevés de la Méditerranée, la Tunisie se prête particulièrement bien à l’énergie solaire. Une installation de panneaux solaires bien dimensionnée permet de produire sur place une partie de l’électricité consommée et de réduire la facture STEG.", "En autoconsommation, l’énergie produite par les panneaux photovoltaïques est convertie par l’onduleur puis utilisée directement dans le bâtiment. L’installation peut rester raccordée au réseau STEG, et des batteries solaires peuvent stocker une partie de la production pour la consommer le soir ou en cas de coupure.", "Chaque projet commence par l’analyse de votre consommation en kWh et de vos factures, puis par le dimensionnement de la puissance en kWc, le choix des panneaux, de l’onduleur et, si besoin, de la batterie. Pour l’agriculture, le pompage solaire alimente directement les pompes d’irrigation à partir de l’énergie du soleil."],
+        tags: [{"label": "Panneaux solaires", "href": "pv"}, {"label": "Énergie solaire", "href": "solutions"}, {"label": "Installation photovoltaïque", "href": "pv"}, {"label": "Batterie solaire", "href": "storage"}, {"label": "Onduleur", "href": "pv"}, {"label": "Autoconsommation", "href": "pv"}, {"label": "Facture STEG", "href": "faq"}, {"label": "kWc / kWh", "href": "faq"}, {"label": "Pompage solaire", "href": "pumping"}, {"label": "Borne de recharge", "href": "mobility"}, {"label": "Bureau d’études", "href": "engineering"}],
+      },
+      {
         type: "steps",
         title: "Notre méthode",
         steps: [
@@ -59,6 +65,7 @@ export const pagesFr: Record<PageKey, Page> = {
       {
         type: "list",
         title: "Pourquoi VERTUS ?",
+        lead: "Une approche d’ingénierie qui part de votre besoin réel et vous accompagne jusqu’à la mise en service.",
         variant: "checks",
         items: [
           "Approche orientée ingénierie.",
@@ -98,16 +105,16 @@ export const pagesFr: Record<PageKey, Page> = {
         ],
       },
       {
-        type: "table",
+        type: "values",
         title: "Nos valeurs",
-        head: ["Valeur", "Description"],
-        rows: [
-          ["Exigence", "Qualité technique et opérationnelle."],
-          ["Innovation", "Technologies pertinentes."],
-          ["Performance", "Résultats mesurables."],
-          ["Responsabilité", "Solutions durables."],
-          ["Transparence", "Communication claire."],
-          ["Engagement", "Accompagnement dans la durée."],
+        lead: "Six principes qui guident chaque projet, de l’étude à la mise en service.",
+        items: [
+          { title: "Exigence", desc: "Qualité technique et opérationnelle.", icon: "gear" },
+          { title: "Innovation", desc: "Technologies pertinentes.", icon: "bulb" },
+          { title: "Performance", desc: "Résultats mesurables.", icon: "bolt" },
+          { title: "Responsabilité", desc: "Solutions durables.", icon: "sun" },
+          { title: "Transparence", desc: "Communication claire.", icon: "bubble" },
+          { title: "Engagement", desc: "Accompagnement dans la durée.", icon: "shield" },
         ],
       },
       { type: "callout", label: "Signature de marque", text: "VERTUS Technology — Engineering Energy. Building the Future." },
@@ -150,9 +157,9 @@ export const pagesFr: Record<PageKey, Page> = {
   pv: {
     key: "pv",
     seo: {
-      title: "Installation photovoltaïque Tunisie | VERTUS Technology",
+      title: "Installation panneaux solaires Tunisie | VERTUS Technology",
       description:
-        "Installation photovoltaïque résidentielle, commerciale, industrielle et agricole en Tunisie : étude, dimensionnement, pose et suivi de performance.",
+        "Panneaux solaires et installation photovoltaïque en Tunisie : étude en kWc/kWh, onduleur, autoconsommation raccordée au réseau STEG, pose et suivi.",
     },
     hero: {
       eyebrow: "Photovoltaïque",
@@ -226,7 +233,7 @@ export const pagesFr: Record<PageKey, Page> = {
   storage: {
     key: "storage",
     seo: {
-      title: "Stockage d’énergie et batteries solaires | VERTUS",
+      title: "Batterie solaire & stockage d’énergie Tunisie | VERTUS",
       description:
         "Batteries solaires et stockage d’énergie en Tunisie : autoconsommation, secours en cas de coupure et solutions hybrides, dimensionnés après analyse de vos besoins.",
     },
@@ -453,9 +460,9 @@ export const pagesFr: Record<PageKey, Page> = {
   faq: {
     key: "faq",
     seo: {
-      title: "FAQ photovoltaïque et énergie solaire | VERTUS",
+      title: "FAQ panneaux solaires, kWh, batterie, STEG | VERTUS",
       description:
-        "Coût d’une installation, puissance, batteries, pompage solaire, solutions pour entreprises et METAFORM : les réponses aux questions fréquentes sur l’énergie solaire.",
+        "Production en kWh d’un panneau solaire, facture STEG, raccordement, batterie, kWc et kWh : les réponses aux questions fréquentes sur l’énergie solaire en Tunisie.",
     },
     hero: { eyebrow: "FAQ", h1: "Questions fréquentes." },
     blocks: [
@@ -479,6 +486,12 @@ export const pagesFr: Record<PageKey, Page> = {
             q: "Proposez-vous des solutions pour les entreprises ?",
             a: "Oui. Les solutions peuvent être adaptées aux bâtiments professionnels, agricoles et industriels.",
           },
+          { q: "Combien de kWh produit un panneau solaire en Tunisie ?", a: "À titre indicatif, 1 kWc de panneaux solaires produit environ 1 500 à 1 700 kWh par an en Tunisie. La production réelle dépend de la région, de l’orientation, de l’inclinaison et des ombrages : l’étude du site permet de l’estimer précisément." },
+          { q: "Comment réduire ma facture STEG avec des panneaux solaires ?", a: "En autoconsommation, l’électricité produite par vos panneaux solaires est consommée directement sur place, ce qui réduit l’énergie achetée au réseau STEG. Le gain dépend de votre consommation en kWh, de vos horaires de consommation et de la puissance installée : nous l’estimons lors de l’étude." },
+          { q: "Une installation solaire peut-elle rester raccordée au réseau STEG ?", a: "Oui. Une installation photovoltaïque peut fonctionner raccordée au réseau électrique de la STEG, selon les procédures et conditions en vigueur. Les démarches applicables à votre projet sont précisées lors de l’étude." },
+          { q: "Quelle batterie choisir pour une installation solaire ?", a: "Le choix de la batterie (technologie, capacité en kWh, puissance) dépend de l’autonomie recherchée, des équipements à alimenter et de l’objectif : augmenter l’autoconsommation ou disposer d’un secours en cas de coupure." },
+          { q: "Quelle est la différence entre kW, kWc et kWh ?", a: "Le kWc (kilowatt-crête) exprime la puissance maximale des panneaux solaires. Le kW mesure une puissance instantanée, et le kWh une quantité d’énergie produite ou consommée : c’est l’unité utilisée sur la facture STEG." },
+          { q: "Combien de panneaux solaires faut-il pour une maison ?", a: "Cela dépend de la consommation annuelle en kWh, de la surface disponible et de la puissance des panneaux choisis. Une étude à partir de vos factures STEG permet de déterminer la puissance en kWc et le nombre de panneaux adaptés." },
           {
             q: "METAFORM propose-t-elle des solutions sur mesure ?",
             a: "Oui. METAFORM développe des solutions métalliques adaptées aux spécifications des projets.",

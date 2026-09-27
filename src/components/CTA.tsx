@@ -5,39 +5,57 @@ import { path } from "@/lib/routes";
 import { Button } from "./Button";
 import { Reveal } from "./Reveal";
 
-export function CTA({ title, text, ui, locale }: { title: string; text?: string; ui: Ui; locale: Locale }) {
-  return (
-    <section className="relative overflow-hidden py-28 md:py-40">
-      {/* cinematic solar backdrop */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_50%_115%,rgba(59,140,230,0.45),rgba(34,196,122,0.12)_45%,transparent_75%)]"
-      />
-      <svg aria-hidden="true" className="absolute inset-0 h-full w-full opacity-40" preserveAspectRatio="none" viewBox="0 0 100 100">
-        {Array.from({ length: 18 }).map((_, i) => (
-          <circle key={i} cx={(i * 37) % 100} cy={100 - ((i * 23) % 60)} r="0.35" fill="#3fd68f">
-            <animate
-              attributeName="cy"
-              values={`${100 - ((i * 23) % 60)};${30 - ((i * 7) % 20)}`}
-              dur={`${7 + (i % 5)}s`}
-              repeatCount="indefinite"
-            />
-            <animate attributeName="opacity" values="0;0.9;0" dur={`${7 + (i % 5)}s`} repeatCount="indefinite" />
-          </circle>
-        ))}
-      </svg>
+/** Break the title after its question mark (French "?" or Arabic "؟"). */
+function titleLines(title: string): string[] {
+  const m = title.match(/^(.*?[?؟])\s*(.+)$/);
+  return m ? [m[1], m[2]] : [title];
+}
 
-      <div className="relative mx-auto max-w-4xl px-5 text-center">
-        <Reveal>
-          <h2 className="display text-4xl md:text-6xl">{title}</h2>
-          {text && <p className="mt-7 text-lg text-mist leading-relaxed max-w-2xl mx-auto">{text}</p>}
-          <div className="mt-11 flex flex-wrap justify-center gap-4">
-            <Button href={path(locale, "study")} track="cta_study_click">{ui.cta.study}</Button>
-            <Button href={whatsappHref(ui.contact.whatsappText)} variant="ghost" external track="whatsapp_click">
-              {ui.cta.expert}
-            </Button>
-          </div>
-        </Reveal>
+/**
+ * Closing call to action: a deep-navy solar panel with a band of sunlight
+ * slowly sweeping across its cells.
+ */
+export function CTA({ title, text, ui, locale }: { title: string; text?: string; ui: Ui; locale: Locale }) {
+  const lines = titleLines(title);
+  return (
+    <section className="px-3 py-16 md:px-6 md:py-24">
+      <div data-theme="dark" className="cta-panel relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-[#0a1f3d]">
+        {/* photovoltaic cells */}
+        <div aria-hidden="true" className="cta-cells absolute inset-0" />
+        {/* sunlight sweeping across the glass */}
+        <div aria-hidden="true" className="cta-sweep absolute inset-y-0 -start-1/2 w-[70%]" />
+        {/* warm sun glow in the corner + depth vignette */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_45%_60%_at_88%_0%,rgba(255,210,63,0.28),transparent_70%),radial-gradient(ellipse_90%_70%_at_50%_120%,rgba(10,31,61,0.95),transparent_70%)] rtl:bg-[radial-gradient(ellipse_45%_60%_at_12%_0%,rgba(255,210,63,0.28),transparent_70%),radial-gradient(ellipse_90%_70%_at_50%_120%,rgba(10,31,61,0.95),transparent_70%)]"
+        />
+
+        <div className="relative px-6 py-20 text-center md:px-12 md:py-28">
+          <Reveal>
+            <h2 className="display mx-auto max-w-6xl text-[2rem] leading-[1.1] text-white md:text-5xl xl:text-[3.5rem]">
+              {lines.map((l, i) => (
+                <span key={i} className="block">
+                  {l}
+                </span>
+              ))}
+            </h2>
+            {text && <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-white/75">{text}</p>}
+            <div className="mt-11 flex flex-wrap justify-center gap-4">
+              <Button href={path(locale, "study")} track="cta_study_click">
+                {ui.cta.study}
+              </Button>
+              <Button
+                href={whatsappHref(ui.contact.whatsappText)}
+                variant="ghost"
+                external
+                track="whatsapp_click"
+                className="!border-white/40 !bg-white/10 !text-white hover:!border-white hover:!bg-white/20"
+              >
+                {ui.cta.expert}
+              </Button>
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

@@ -144,7 +144,9 @@ export function Hero({ hero, ui, locale }: { hero: Page["hero"]; ui: Ui; locale:
         style={reduced ? undefined : { opacity: sceneOpacity, y: sceneY }}
         aria-hidden="true"
       >
-        {mode !== "static" && mode !== "pending" && visible && <Hero3D quality={mode} />}
+        {/* Stays mounted once loaded (no rebuild when scrolling back); only the
+            render loop pauses while the hero is off-screen. */}
+        {mode !== "static" && mode !== "pending" && <Hero3D quality={mode} paused={!visible} />}
         {(mode === "static" || mode === "pending") && (
           <div className="absolute inset-0">
             {/* sun */}

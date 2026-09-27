@@ -17,6 +17,8 @@ import { LegalBlock } from "./LegalBlock";
 import { NewsList } from "./NewsList";
 import { ContactBlock } from "./ContactBlock";
 import { StudyForm } from "./StudyForm";
+import { TextBlock } from "./TextBlock";
+import { ValuesBlock } from "./ValuesBlock";
 import { Section } from "./Section";
 
 /** Renders a page's content blocks (the CMS-ready schema in content/types.ts). */
@@ -47,6 +49,10 @@ export function Blocks({ blocks, pageKey, ui, locale }: { blocks: Block[]; pageK
             return <CalloutBlock key={i} label={b.label} text={b.text} />;
           case "faq":
             return <FaqBlock key={i} title={b.title} items={b.items} />;
+          case "values":
+            return <ValuesBlock key={i} title={b.title} lead={b.lead} items={b.items} />;
+          case "text":
+            return <TextBlock key={i} title={b.title} text={b.text} tags={b.tags} locale={locale} />;
           case "cta":
             return <CTA key={i} title={b.title} text={b.text} ui={ui} locale={locale} />;
           case "ceo":

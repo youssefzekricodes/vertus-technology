@@ -1,6 +1,6 @@
 # VERTUS TECHNOLOGY — site corporate
 
-Site vitrine et d’acquisition de prospects, bilingue **arabe** (langue par défaut, RTL, `/`) et **français** (`/fr`) — thème clair par défaut, conforme au cahier des charges web V2.1.
+Site vitrine et d’acquisition de prospects, bilingue **français** (langue par défaut, `/`) et **arabe** (RTL, `/ar`) — thème clair par défaut, conforme au cahier des charges web V2.1.
 Next.js 16 (App Router), Tailwind CSS v4, React Three Fiber (hero 3D), Swiper.
 
 ## Démarrage
@@ -23,7 +23,7 @@ npm run build && npm start
 ## Arborescence (15 pages + légales, FR et AR)
 
 Accueil · VERTUS Technology · Solutions · Photovoltaïque · Pompage solaire · Stockage · Mobilité électrique · Ingénierie & Bureau d’études · METAFORM · Réalisations · Expertise · Actualités (+ articles) · FAQ · Contact · Demander une étude · Mentions légales · Politique de confidentialité.
-URLs définies dans `src/lib/routes.ts` (mêmes slugs dans les deux langues : arabe à la racine, français sous `/fr` ; les anciennes adresses `/ar/…` redirigent vers la racine).
+URLs définies dans `src/lib/routes.ts` (mêmes slugs dans les deux langues : français à la racine, arabe sous `/ar` ; les anciennes adresses `/fr/…` redirigent vers la racine).
 
 ## Où modifier le contenu
 

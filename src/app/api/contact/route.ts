@@ -139,27 +139,54 @@ export async function POST(req: Request) {
     return bad("not_configured", 503);
   }
 
-  try {
+  const send = async (payload: typeof prospect): Promise<{ ok: true } | { ok: false; error: string }> => {
     const res = await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prospect),
+      body: JSON.stringify(payload),
       // Apps Script replies with a redirect; follow it.
       redirect: "follow",
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(25_000),
     });
-    if (!res.ok) throw new Error(`sheets_status_${res.status}`);
+    if (!res.ok) return { ok: false, error: `sheets_status_${res.status}` };
     // Apps Script answers 200 even when the script throws: check its JSON.
     const text = await res.text();
     let reply: { ok?: boolean; status?: string; error?: string } | null = null;
     try {
       reply = JSON.parse(text);
     } catch {
-      throw new Error(`sheets_non_json: ${text.replace(/<[^>]+>/g, " ").slice(0, 200)}`);
+      return { ok: false, error: `sheets_non_json: ${text.replace(/<[^>]+>/g, " ").slice(0, 200)}` };
     }
     if (reply?.ok === false || reply?.status === "error" || reply?.error) {
-      throw new Error(`sheets_script_error: ${JSON.stringify(reply).slice(0, 300)}`);
+      return { ok: false, error: String(reply?.error ?? JSON.stringify(reply)).slice(0, 400) };
     }
+    return { ok: true };
+  };
+
+  try {
+    let result = await send(prospect);
+
+    // Script without Drive permission: nothing was written. Retry without the
+    // files so the lead itself is never lost, and say so in the message.
+    if (!result.ok && /DriveApp/i.test(result.error) && prospect.attachments.length) {
+      console.warn("[contact] Drive not authorised in Apps Script; retrying without attachments", prospect.id);
+      result = await send({
+        ...prospect,
+        message: `${prospect.message}\n\n[${prospect.attachments.length} pièce(s) jointe(s) non enregistrée(s) : ${prospect.attachments
+          .map((f) => f.name)
+          .join(", ")} — autoriser Google Drive dans le script]`,
+        attachments: [],
+      });
+    }
+
+    // Script without Gmail permission: every version of the script writes the
+    // row BEFORE sending the alert, so the lead is stored — only the e-mail failed.
+    if (!result.ok && /MailApp|send_mail/i.test(result.error)) {
+      console.warn("[contact] lead stored but the e-mail alert failed (authorise Gmail in Apps Script)", prospect.id);
+      return NextResponse.json({ ok: true, id: prospect.id, stored: true, notified: false });
+    }
+
+    if (!result.ok) throw new Error(result.error);
     console.info("[contact] lead stored", prospect.id);
     return NextResponse.json({ ok: true, id: prospect.id, stored: true });
   } catch (err) {

@@ -23,6 +23,7 @@ export function Footer({ ui, locale }: { ui: Ui; locale: Locale }) {
   const companyLinks: PageKey[] = ["company", "engineering", "metaform", "projects", "expertise", "news", "faq", "contact"];
   const solutionLinks: PageKey[] = ["pv", "pumping", "storage", "mobility"];
   const label = (key: PageKey) => {
+    if (key === "company") return ui.companyPage;
     for (const e of ui.nav) {
       if ("children" in e) {
         const c = e.children.find((x) => x.key === key);
@@ -37,7 +38,7 @@ export function Footer({ ui, locale }: { ui: Ui; locale: Locale }) {
     <footer className="border-t border-line/60 bg-base-deep">
       <div className="mx-auto max-w-7xl px-5 md:px-8 py-16 grid gap-12 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
         <div>
-          <Logo />
+          <Logo id="footer-logo" />
           <p className="mt-5 text-ink/85 font-semibold" dir="ltr">
             {ui.signature}
           </p>

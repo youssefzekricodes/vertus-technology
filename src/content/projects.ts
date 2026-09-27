@@ -53,7 +53,7 @@ const fr: Project[] = [
     power: "250 kWc",
     problem: "Valoriser les surfaces de toiture et de parking d’un site commercial.",
     solution: "Ombrières photovoltaïques et centrale en toiture, structures métalliques adaptées au site.",
-    image: "/projects/commercial.jpg",
+    image: "/projects/commercial-onduleurs.jpg",
   },
 ];
 
@@ -104,7 +104,7 @@ const ar: Project[] = [
     power: "250 كيلوواط ذروة",
     problem: "تثمين مساحات السطح والمرآب في موقع تجاري.",
     solution: "مظلات كهروضوئية ومحطة على السطح، بهياكل معدنية ملائمة للموقع.",
-    image: "/projects/commercial.jpg",
+    image: "/projects/commercial-onduleurs.jpg",
   },
 ];
 

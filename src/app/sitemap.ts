@@ -23,19 +23,19 @@ const CONTENT_UPDATED = new Date("2026-09-27");
 
 function entry(suffix: string, priority: number, lastModified: Date): MetadataRoute.Sitemap {
   const tail = suffix ? `/${suffix}` : "";
-  // Arabic (default) at the root, French under /fr
-  const ar = `${company.domain}${tail}`;
-  const fr = `${company.domain}/fr${tail}`;
-  const alternates = { languages: { ar, fr, "x-default": ar } };
+  // French (default) at the root, Arabic under /ar
+  const fr = `${company.domain}${tail}`;
+  const ar = `${company.domain}/ar${tail}`;
+  const alternates = { languages: { fr, ar, "x-default": fr } };
   return [
-    { url: ar, lastModified, changeFrequency: "monthly", priority, alternates, images: [`${company.domain}/og/ar${tail}`] },
+    { url: fr, lastModified, changeFrequency: "monthly", priority, alternates, images: [`${company.domain}/og/fr${tail}`] },
     {
-      url: fr,
+      url: ar,
       lastModified,
       changeFrequency: "monthly",
       priority: Math.max(0.1, priority - 0.1),
       alternates,
-      images: [`${company.domain}/og/fr${tail}`],
+      images: [`${company.domain}/og/ar${tail}`],
     },
   ];
 }

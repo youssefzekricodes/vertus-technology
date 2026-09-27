@@ -669,7 +669,7 @@ function Scene({ quality }: { quality: "high" | "low" }) {
   );
 }
 
-export default function Hero3D({ quality }: { quality: "high" | "low" }) {
+export default function Hero3D({ quality, paused = false }: { quality: "high" | "low"; paused?: boolean }) {
   return (
     <Canvas
       camera={{ position: [0, 1.1, 8.5], fov: 50 }}
@@ -677,7 +677,7 @@ export default function Hero3D({ quality }: { quality: "high" | "low" }) {
       gl={{ antialias: quality === "high", alpha: true, powerPreference: "high-performance" }}
       style={{ pointerEvents: "none" }}
       eventSource={typeof document !== "undefined" ? document.body : undefined}
-      frameloop="always"
+      frameloop={paused ? "never" : "always"}
     >
       <Scene quality={quality} />
     </Canvas>

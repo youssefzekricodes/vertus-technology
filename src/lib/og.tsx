@@ -8,6 +8,10 @@ import { getPage } from "@/content/pages";
 import { getUi } from "@/content/ui";
 import type { Locale, PageKey } from "@/content/types";
 import { keyFromSlug, routes } from "./routes";
+import { logoMarkSvg } from "./logoMark";
+
+/** The VERTUS mark as a data URI (Satori renders SVG images). */
+const MARK = `data:image/svg+xml;base64,${Buffer.from(logoMarkSvg({ id: "og" })).toString("base64")}`;
 
 /** Shared Open Graph / Twitter image (1200×630 PNG) for every page. */
 export const ogSize = { width: 1200, height: 630 };
@@ -107,10 +111,8 @@ export async function renderOg(locale: Locale, slug?: string[]) {
         />
 
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <svg width="64" height="64" viewBox="6 15 52 52">
-            <path d="M56 26 L44 26 L26 56 L38 56 Z" fill="#eef3f8" />
-            <path d="M8 26 L20 26 L38 56 L26 56 Z" fill="#22c47a" />
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MARK} width={72} height={72} alt="" />
           <div style={{ display: "flex", flexDirection: "column", fontFamily: "Archivo" }}>
             <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: 6 }}>VERTUS</span>
             <span style={{ fontSize: 14, fontWeight: 500, letterSpacing: 9, color: "#8d9bb0" }}>TECHNOLOGY</span>

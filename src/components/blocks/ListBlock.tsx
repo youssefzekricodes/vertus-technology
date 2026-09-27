@@ -66,20 +66,29 @@ export function ListBlock({
     );
   }
 
+  // Reasons: a calm editorial list — heading on one side, reasons on the other,
+  // separated by hairlines and marked with a small energy bolt.
   return (
     <Section>
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-        <SectionHeader title={title} sub={lead} />
-        <ul className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-12 lg:grid-cols-[0.9fr_1.3fr] lg:gap-20">
+        <div className="lg:sticky lg:top-28 self-start">
+          <SectionHeader title={title} sub={lead} />
+        </div>
+        <ul className="border-t border-line">
           {list.map((it, i) => (
-            <Reveal as="li" key={it.title} delay={(i % 2) * 0.05}>
-              <div className="flex h-full items-start gap-4 rounded-2xl border border-line/60 bg-base-soft/40 p-5">
-                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-energy/15 text-accent">
-                  <Icon name="check" className="h-4 w-4" />
-                </span>
+            <Reveal as="li" key={it.title} delay={i * 0.04} className="border-b border-line">
+              <div className="flex items-start gap-5 py-6">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="mt-1 h-5 w-5 shrink-0 text-energy"
+                  fill="currentColor"
+                >
+                  <path d="M13.5 2 4 13.5h6.2L9 22l10-12.2h-6.3L13.5 2Z" />
+                </svg>
                 <div>
-                  <p className="font-medium leading-snug">{it.title}</p>
-                  {it.desc && <p className="mt-1.5 text-sm text-mist">{it.desc}</p>}
+                  <p className="text-lg font-medium leading-snug md:text-xl">{it.title}</p>
+                  {it.desc && <p className="mt-1.5 text-mist">{it.desc}</p>}
                 </div>
               </div>
             </Reveal>

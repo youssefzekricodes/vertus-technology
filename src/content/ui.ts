@@ -7,7 +7,6 @@ const fr = {
   lang: "fr",
   signature: "Engineering Energy. Building the Future.",
   nav: [
-    { key: "company", label: "VERTUS Technology" },
     {
       label: "Solutions",
       children: [
@@ -16,10 +15,10 @@ const fr = {
         { key: "pumping", label: "Pompage solaire" },
         { key: "storage", label: "Stockage" },
         { key: "mobility", label: "Mobilité électrique" },
+        { key: "engineering", label: "Ingénierie & bureau d’études" },
+        { key: "metaform", label: "METAFORM" },
       ],
     },
-    { key: "engineering", label: "Ingénierie" },
-    { key: "metaform", label: "METAFORM" },
     { key: "projects", label: "Réalisations" },
     {
       label: "Ressources",
@@ -56,6 +55,7 @@ const fr = {
     ],
   },
   home: "Accueil",
+  companyPage: "VERTUS Technology",
   breadcrumb: "Fil d’Ariane",
   ceo: {
     title: "Mot du CEO",
@@ -195,7 +195,6 @@ const ar: Ui = {
   lang: "ar",
   signature: "Engineering Energy. Building the Future.",
   nav: [
-    { key: "company", label: "فيرتوس تكنولوجي" },
     {
       label: "الحلول",
       children: [
@@ -204,10 +203,10 @@ const ar: Ui = {
         { key: "pumping", label: "الضخ الشمسي" },
         { key: "storage", label: "التخزين" },
         { key: "mobility", label: "التنقل الكهربائي" },
+        { key: "engineering", label: "الهندسة ومكتب الدراسات" },
+        { key: "metaform", label: "METAFORM" },
       ],
     },
-    { key: "engineering", label: "الهندسة" },
-    { key: "metaform", label: "METAFORM" },
     { key: "projects", label: "الإنجازات" },
     {
       label: "موارد",
@@ -244,6 +243,7 @@ const ar: Ui = {
     ],
   },
   home: "الرئيسية",
+  companyPage: "فيرتوس تكنولوجي",
   breadcrumb: "مسار التصفح",
   ceo: {
     title: "كلمة المدير العام",

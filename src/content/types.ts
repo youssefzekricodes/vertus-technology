@@ -31,6 +31,10 @@ export type Block =
   | { type: "callout"; label: string; text: string }
   | { type: "faq"; title?: string; items: { q: string; a: string }[] }
   | { type: "cta"; title: string; text?: string }
+  /** Values connected by an animated power cable. */
+  | { type: "values"; title: string; lead?: string; items: { title: string; desc: string; icon: Icon3DName }[] }
+  /** Editorial text with linked topic chips (SEO + internal linking). */
+  | { type: "text"; title: string; text: string[]; tags?: { label: string; href: PageKey }[] }
   | { type: "ceo" }
   | { type: "energyflow" }
   | { type: "projects"; title?: string; lead?: string }

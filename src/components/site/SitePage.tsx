@@ -16,6 +16,7 @@ const SOLUTION_CHILDREN: PageKey[] = ["pv", "pumping", "storage", "mobility"];
 
 /** Short label of a page (navigation wording) for breadcrumbs. */
 function label(ui: Ui, key: PageKey): string {
+  if (key === "company") return ui.companyPage;
   for (const e of ui.nav) {
     if ("children" in e) {
       const c = e.children.find((c) => c.key === key);

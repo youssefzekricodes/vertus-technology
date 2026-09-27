@@ -196,6 +196,33 @@ body {
   border-radius: 2px;
 }
 
+/*
+ * HeroUI / React Aria overlays manage focus themselves: the menu or listbox
+ * container receives focus when it opens (and on a fresh page load React Aria
+ * treats that as keyboard focus), so the global outline would draw a ring
+ * around the whole popover. Items keep their own focus highlight.
+ */
+[role="menu"]:focus-visible,
+[role="listbox"]:focus-visible,
+[role="dialog"]:focus-visible,
+.dropdown__popover:focus-visible,
+.select__popover:focus-visible,
+.popover:focus-visible {
+  outline: none;
+}
+
+/* Keyboard focus inside menus/lists: a soft tint instead of the outline. */
+[role="menuitem"]:focus-visible,
+[role="menuitem"][data-focus-visible="true"],
+[role="option"]:focus-visible,
+[role="option"][data-focus-visible="true"] {
+  outline: none;
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
 /* Energy dash flow along SVG strokes */
 @keyframes flow {
   to {
@@ -237,6 +264,57 @@ body {
   border-radius: 9999px;
   background: radial-gradient(circle at 50% 40%, #ffffff 0%, rgba(255, 255, 255, 0.92) 45%, rgba(255, 255, 255, 0) 72%);
   filter: blur(2px);
+}
+
+/* CTA: a solar panel (cells + busbars) with sunlight sweeping across it */
+.cta-cells {
+  background:
+    linear-gradient(90deg, rgba(160, 200, 255, 0.07) 1px, transparent 1px) 0 0 / 22px 100%,
+    linear-gradient(rgba(12, 34, 64, 0.95) 3px, transparent 3px) 0 0 / 100% 64px,
+    linear-gradient(90deg, rgba(12, 34, 64, 0.95) 3px, transparent 3px) 0 0 / 64px 100%,
+    linear-gradient(160deg, #1f4f93 0%, #14356b 55%, #0d2650 100%);
+  opacity: 0.9;
+}
+@keyframes cta-sweep {
+  0% {
+    transform: translateX(-20%) skewX(-18deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+.cta-sweep {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 236, 170, 0.08) 30%,
+    rgba(255, 244, 205, 0.26) 50%,
+    rgba(255, 236, 170, 0.08) 70%,
+    transparent 100%
+  );
+  animation: cta-sweep 9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform, opacity;
+}
+[dir="rtl"] .cta-sweep {
+  animation-direction: reverse;
+}
+
+/* Values circuit: gentle current flowing along each wire */
+@keyframes vt-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.vt-flow {
+  animation: vt-flow 0.9s linear infinite;
 }
 
 /* Hidden-scrollbar horizontal swipers */

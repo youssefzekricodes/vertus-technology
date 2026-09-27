@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { staticSlugs } from "@/components/site/SitePage";
 import { renderOg } from "@/lib/og";
 
-/** /og/ar, /og/fr/solutions/pompage-solaire… → 1200×630 PNG, prerendered at build. */
+/** /og/fr, /og/ar/solutions/pompage-solaire… → 1200×630 PNG, prerendered at build. */
 export function generateStaticParams() {
   return ["fr", "ar"].flatMap((locale) => [{ locale, slug: [] }, ...staticSlugs().map((s) => ({ locale, ...s }))]);
 }

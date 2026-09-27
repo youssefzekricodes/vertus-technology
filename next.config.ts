@@ -16,15 +16,24 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   poweredByHeader: false,
-  // Arabic moved from /ar to the site root: keep old links working.
+  // French is the default language again (at the root); /fr/* links from the
+  // Arabic-first period keep working.
   async redirects() {
     return [
-      { source: "/ar", destination: "/", permanent: true },
-      { source: "/ar/:path*", destination: "/:path*", permanent: true },
+      { source: "/fr", destination: "/", permanent: true },
+      { source: "/fr/:path*", destination: "/:path*", permanent: true },
     ];
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // Public images/icons are not content-hashed: cache 30 days, then
+    // revalidate in the background (instant repeat visits, still updatable).
+    const assetCache = [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=604800" }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/projects/:file*", headers: assetCache },
+      { source: "/about/:file*", headers: assetCache },
+      { source: "/:icon(favicon.ico|icon.svg|logo-mark.svg|icon-48.png|icon-96.png|icon-192.png|icon-512.png|apple-touch-icon.png)", headers: assetCache },
+    ];
   },
 };
 

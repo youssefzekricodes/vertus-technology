@@ -124,7 +124,7 @@ export function Navbar({ ui, locale }: { ui: Ui; locale: Locale }) {
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 md:px-8 h-16 md:h-[4.5rem]">
         <Link href={path(locale, "home")} aria-label={ui.home}>
-          <Logo />
+          <Logo id="nav-logo" />
         </Link>
 
         <ul className="hidden xl:flex items-center gap-6">
